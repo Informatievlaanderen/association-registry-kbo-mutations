@@ -214,7 +214,7 @@
     "combined-stream": "^1.0.8",
     "commander": "^7.2.0",
     "compare-func": "^2.0.0",
-    "concat-map": "^0.0.1",
+    "concat-map": "^0.0.2",
     "config-chain": "^1.1.13",
     "conventional-changelog-angular": "^6.0.0",
     "conventional-changelog-conventionalcommits": "^6.1.0",
