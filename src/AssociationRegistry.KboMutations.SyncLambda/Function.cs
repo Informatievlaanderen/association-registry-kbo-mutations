@@ -140,6 +140,13 @@ public class Function
         
         opts.Connection(connectionString);
         opts.Events.StreamIdentity = StreamIdentity.AsString;
+        
+        opts.Events.AddEventTypes( typeof(AssociationRegistry.Events.IEvent).Assembly
+            .GetTypes()
+            .Where(t => typeof(AssociationRegistry.Events.IEvent)
+                .IsAssignableFrom(t) && !t.IsAbstract && t.IsClass)
+            .ToList());
+        
         opts.Serializer(CreateCustomMartenSerializer());
         opts.Events.MetadataConfig.EnableAll();
         opts.AutoCreateSchemaObjects = AutoCreate.None;
