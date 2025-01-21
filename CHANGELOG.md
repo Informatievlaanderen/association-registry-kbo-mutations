@@ -1,3 +1,15 @@
+# [1.13.0](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.12.0...v1.13.0) (2025-01-21)
+
+
+### Bug Fixes
+
+* or2583 import right namespaces ([4c15c7d](https://github.com/informatievlaanderen/association-registry-kbo-mutations/commit/4c15c7d8e12ccc00a93c86257efcc1b212b3cdca))
+
+
+### Features
+
+* or-2583 update libs to 8.200.0 ([cb73eb3](https://github.com/informatievlaanderen/association-registry-kbo-mutations/commit/cb73eb34ae5629a0f96c8cf7470a193850b96354))
+
 # [1.12.0](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.11.0...v1.12.0) (2025-01-09)
 
 
