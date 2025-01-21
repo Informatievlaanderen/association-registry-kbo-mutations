@@ -1,22 +1,14 @@
 using System.Text.Json;
-using Amazon.Lambda.Core;
 using Amazon.Lambda.SQSEvents;
-using AssocationRegistry.KboMutations;
 using AssocationRegistry.KboMutations.Configuration;
-using AssocationRegistry.KboMutations.Messages;
-using AssociationRegistry.Acties.SyncKbo;
 using AssociationRegistry.Framework;
 using AssociationRegistry.Kbo;
 using AssociationRegistry.KboMutations.SyncLambda.Logging;
-using AssociationRegistry.Magda;
+using AssociationRegistry.KboSyncLambda.SyncKbo;
 using AssociationRegistry.Notifications;
-using AssociationRegistry.Notifications.Messages;
 using AssociationRegistry.Vereniging;
-using Marten;
 using Microsoft.Extensions.Logging;
 using NodaTime;
-using ResultNet;
-using Wolverine.Marten;
 
 namespace AssociationRegistry.KboMutations.SyncLambda;
 
