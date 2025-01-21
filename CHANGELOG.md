@@ -1,3 +1,11 @@
+## [1.13.2](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.13.1...v1.13.2) (2025-01-21)
+
+
+### Bug Fixes
+
+* or-2583 register verenigingstate ([d4ede25](https://github.com/informatievlaanderen/association-registry-kbo-mutations/commit/d4ede258c02dd02507fd53de56eac3d19e0d57bf))
+* or-2583 update packages ([1d392fb](https://github.com/informatievlaanderen/association-registry-kbo-mutations/commit/1d392fbbf548c17d5a74de8c60538b7be5405636))
+
 ## [1.13.1](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.13.0...v1.13.1) (2025-01-21)
 
 
