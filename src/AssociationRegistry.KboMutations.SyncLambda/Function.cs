@@ -14,6 +14,7 @@ using AssociationRegistry.KboMutations.SyncLambda.JsonSerialization;
 using AssociationRegistry.KboMutations.SyncLambda.Logging;
 using AssociationRegistry.Magda;
 using AssociationRegistry.Magda.Models;
+using AssociationRegistry.Vereniging;
 using Marten;
 using Marten.Events;
 using Marten.Services;
@@ -146,6 +147,8 @@ public class Function
             .Where(t => typeof(AssociationRegistry.Events.IEvent)
                 .IsAssignableFrom(t) && !t.IsAbstract && t.IsClass)
             .ToList());
+        
+        opts.RegisterDocumentType<VerenigingState>();
         
         opts.Serializer(CreateCustomMartenSerializer());
         opts.Events.MetadataConfig.EnableAll();
