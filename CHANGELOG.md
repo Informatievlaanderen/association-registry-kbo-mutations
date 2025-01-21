@@ -1,3 +1,10 @@
+## [1.13.1](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.13.0...v1.13.1) (2025-01-21)
+
+
+### Bug Fixes
+
+* or-2583 configure event types from associationRegistry.Events ([4c2844e](https://github.com/informatievlaanderen/association-registry-kbo-mutations/commit/4c2844e1064316ab753dfe221ec9d2d1d5e47999))
+
 # [1.13.0](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.12.0...v1.13.0) (2025-01-21)
 
 
