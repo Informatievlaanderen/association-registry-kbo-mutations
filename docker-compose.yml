@@ -60,7 +60,7 @@ services:
     networks:
       - localstack-net
   admin-api:
-    image: 460116816372.dkr.ecr.eu-west-1.amazonaws.com/verenigingsregister-adminapi:8.200.0
+    image: 460116816372.dkr.ecr.eu-west-1.amazonaws.com/verenigingsregister-adminapi:8.200.1
     environment:
       OrganisationRegistryUri: https://organisation.dev-vlaanderen.be/
       PostgreSQLOptions__Host: db

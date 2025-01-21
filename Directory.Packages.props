@@ -16,8 +16,8 @@
     <PackageVersion Include="AWSSDK.SimpleSystemsManagement" Version="3.7.402.6" />
     <PackageVersion Include="AWSSDK.SQS" Version="3.7.400.27" />
     <PackageVersion Include="AWSSDK.S3" Version="3.7.403.6" />
-    <PackageVersion Include="Be.Vlaanderen.Basisregisters.AssociationRegistry" Version="8.200.0" />
-    <PackageVersion Include="Be.Vlaanderen.Basisregisters.AssociationRegistry.Magda" Version="8.200.0" />
+    <PackageVersion Include="Be.Vlaanderen.Basisregisters.AssociationRegistry" Version="8.200.1" />
+    <PackageVersion Include="Be.Vlaanderen.Basisregisters.AssociationRegistry.Magda" Version="8.200.1" />
     <PackageVersion Include="Be.Vlaanderen.Basisregisters.Build.Pipeline" Version="7.2.6" />
     <PackageVersion Include="CsvHelper" Version="32.0.3" />
     <PackageVersion Include="FluentAssertions" Version="6.12.1" />
