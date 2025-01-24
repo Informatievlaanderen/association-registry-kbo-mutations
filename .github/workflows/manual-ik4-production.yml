@@ -18,7 +18,6 @@ jobs:
           [
             'kbomutations',
             'kbomutationsfile',
-            'kbosync',
           ]
     steps:
       - name: CD

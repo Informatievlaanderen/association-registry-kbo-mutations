@@ -288,7 +288,6 @@ jobs:
     needs: 
       - build-mutation-lambda
       - build-mutationfile-lambda
-      - build-sync-lambda
     outputs:
       version: ${{ steps.set-version.outputs.version }}
     steps:
@@ -477,7 +476,6 @@ jobs:
       - release
       - upload-mutation-lambda
       - upload-mutationfile-lambda
-      - upload-sync-lambda
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code
