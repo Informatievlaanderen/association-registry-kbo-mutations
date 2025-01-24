@@ -1,3 +1,12 @@
+## [1.13.3](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.13.2...v1.13.3) (2025-01-24)
+
+
+### Bug Fixes
+
+* **deps:** update dependency git-log-parser to v1.2.1 ([2f48883](https://github.com/informatievlaanderen/association-registry-kbo-mutations/commit/2f4888315e831d4920a868e710361a3991b1eae2))
+* or-2583 remove kbo sync from project ([f3418eb](https://github.com/informatievlaanderen/association-registry-kbo-mutations/commit/f3418ebe5623437bb9ddec495c0d752a1b951dc1))
+* or-2583 remove kbo sync from workflow ([e31153c](https://github.com/informatievlaanderen/association-registry-kbo-mutations/commit/e31153cffb5565ef3ace83e3d7256dd5327a676d))
+
 ## [1.13.2](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.13.1...v1.13.2) (2025-01-21)
 
 
