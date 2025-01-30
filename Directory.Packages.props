@@ -7,7 +7,7 @@
     <PackageVersion Include="AutoBogus" Version="2.13.1" />
     <PackageVersion Include="Amazon.Lambda.RuntimeSupport" Version="1.11.0" />
     <PackageVersion Include="Amazon.Lambda.Core" Version="2.3.0" />
-    <PackageVersion Include="Amazon.Lambda.Serialization.SystemTextJson" Version="2.4.3" />
+    <PackageVersion Include="Amazon.Lambda.Serialization.SystemTextJson" Version="2.4.4" />
     <PackageVersion Include="Amazon.Lambda.APIGatewayEvents" Version="2.7.1" />
     <PackageVersion Include="Amazon.Lambda.SQSEvents" Version="2.2.0" />
     <PackageVersion Include="AutoFixture" Version="4.18.1" />
