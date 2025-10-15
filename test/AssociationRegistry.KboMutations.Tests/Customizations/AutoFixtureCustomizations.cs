@@ -17,9 +17,9 @@ public static class CustomFixture
     
     private static IFixture CustomizeMutatielijn(this IFixture fixture)
     {
-        fixture.Customize<MutatieLijn>(
+        fixture.Customize<OndernemingMutatieLijn>(
             composerTransformation: composer => composer.FromFactory(
-                    factory: () => new MutatieLijn
+                    factory: () => new OndernemingMutatieLijn
                     {
                         DatumModificatie = fixture.Create<DateTime>(),
                         StatusCode = fixture.Create<string>(),

@@ -4,7 +4,7 @@ using AutoBogus;
 
 namespace AssociationRegistry.KboMutations.Tests.Fakers;
 
-public sealed class MutatieLijnFaker : AutoFaker<MutatieLijn>
+public sealed class MutatieLijnFaker : AutoFaker<OndernemingMutatieLijn>
 {
     public MutatieLijnFaker()
     {

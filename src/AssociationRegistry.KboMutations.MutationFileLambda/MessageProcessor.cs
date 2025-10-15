@@ -25,6 +25,9 @@ public class MessageProcessor
     private readonly IAmazonSQS _sqsClient;
     private readonly INotifier _notifier;
 
+    private const string FucntiesFileNamePrefix = "functies";
+    private const string OndernemingFileNamePrefix = "onderneming";
+    
     public MessageProcessor(IAmazonS3 s3Client,
         IAmazonSQS sqsClient,
         INotifier notifier,
@@ -87,8 +90,8 @@ public class MessageProcessor
         var content = await FetchMutationFileContent(fetchMutatieBestandResponse.ResponseStream, cancellationToken);
 
         contextLogger.LogInformation($"MutatieBestand found");
-
-        var mutatielijnen = ReadMutationLines(contextLogger, content);
+        
+        var mutatielijnen = ReadMutationFile(message.Key, content).ToList();
 
         contextLogger.LogInformation($"Found {mutatielijnen.Count} mutatielijnen");
 
@@ -108,6 +111,17 @@ public class MessageProcessor
 
         return responses;
     }
+    
+    private IEnumerable<IMutatieLijn> ReadMutationFile(string fileName,
+        string content)
+    {
+        return fileName.ToLower() switch
+        {
+            var s when s.StartsWith(OndernemingFileNamePrefix) => ReadMutationLines<OndernemingMutatieLijn>(content),
+            var s when s.StartsWith(FucntiesFileNamePrefix) => ReadMutationLines<FunctieMutatieLijn>(content),
+            _ => throw new ArgumentException($"Unknown file name: {fileName}", nameof(fileName)),
+        };
+    }
 
     private static async Task<string> FetchMutationFileContent(
         Stream mutatieBestandStream,
@@ -118,9 +132,8 @@ public class MessageProcessor
         return await reader.ReadToEndAsync(cancellationToken);
     }
 
-    private static List<MutatieLijn> ReadMutationLines(
-        ILambdaLogger contextLogger,
-        string content)
+    private static IEnumerable<T> ReadMutationLines<T>(string content)
+    where T : IMutatieLijn
     {
         var config = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
@@ -132,6 +145,6 @@ public class MessageProcessor
         using var stringReader = new StringReader(content);
         using var csv = new CsvReader(stringReader, config);
 
-        return csv.GetRecords<MutatieLijn>().ToList();
+        return csv.GetRecords<T>();
     }
 }

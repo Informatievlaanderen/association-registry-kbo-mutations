@@ -2,7 +2,7 @@
 
 namespace AssocationRegistry.KboMutations.Models;
 
-public class MutatieLijn
+public class OndernemingMutatieLijn : IMutatieLijn
 {
     // schema available at https://vlaamseoverheid.atlassian.net/wiki/spaces/MG/pages/516129060/Interface+PubliceerOndernemingVKBO-02.00
     [Index(0)] public DateTime DatumModificatie { get; init; }
@@ -19,7 +19,7 @@ public class MutatieLijn
 
     [Index(86)] public string StopzettingsReden { get; init; } = null!;
 
-    protected bool Equals(MutatieLijn other)
+    protected bool Equals(OndernemingMutatieLijn other)
     {
         return DatumModificatie.Equals(other.DatumModificatie) &&
                Ondernemingsnummer == other.Ondernemingsnummer &&
@@ -31,7 +31,7 @@ public class MutatieLijn
         if (ReferenceEquals(null, obj)) return false;
         if (ReferenceEquals(this, obj)) return true;
         if (obj.GetType() != GetType()) return false;
-        return Equals((MutatieLijn)obj);
+        return Equals((OndernemingMutatieLijn)obj);
     }
 
     public override int GetHashCode()
