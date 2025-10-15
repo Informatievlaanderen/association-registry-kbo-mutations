@@ -14,7 +14,7 @@ using Moq;
 
 namespace AssociationRegistry.KboMutations.MutationLambdaContainer.Tests;
 
-public class MutatieBestandProcessorTests
+public class MutatieFtpProcessorTests
 {
     [Fact]
     public async Task PutsItemsOnQueueAndS3()
@@ -32,7 +32,7 @@ public class MutatieBestandProcessorTests
         var amazonS3 = new Mock<IAmazonS3>();
         var amazonSqs = new Mock<IAmazonSQS>();
 
-        var sut = new MutatieBestandProcessor(Mock.Of<ILambdaLogger>(), ftpsClient.Object, amazonS3.Object,
+        var sut = new MutatieFtpProcessor(Mock.Of<ILambdaLogger>(), ftpsClient.Object, amazonS3.Object,
             amazonSqs.Object, new KboMutationsConfiguration(){SourcePath = "test", Host = "host", Port = 123, CachePath = "cache"}, new KboSyncConfiguration(), Mock.Of<INotifier>());
         await sut.ProcessAsync();
         

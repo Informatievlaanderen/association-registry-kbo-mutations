@@ -17,7 +17,7 @@ using AssociationRegistry.Notifications;
 
 namespace AssociationRegistry.KboMutations.MutationLambdaContainer;
 
-public class MutatieBestandProcessor
+public class MutatieFtpProcessor
 {
     private readonly FtpUriBuilder _baseUriBuilder;
     private readonly IFtpsClient _ftpsClient;
@@ -28,7 +28,7 @@ public class MutatieBestandProcessor
     private readonly IAmazonS3 _s3Client;
     private readonly IAmazonSQS _sqsClient;
 
-    public MutatieBestandProcessor(ILambdaLogger logger, IFtpsClient ftpsClient, IAmazonS3 s3Client,
+    public MutatieFtpProcessor(ILambdaLogger logger, IFtpsClient ftpsClient, IAmazonS3 s3Client,
         IAmazonSQS sqsClient, KboMutationsConfiguration kboMutationsConfiguration,
         KboSyncConfiguration kboSyncConfiguration, INotifier notifier)
     {

@@ -55,43 +55,9 @@ services:
       - "9580:80"
     environment:
       ACCEPT_EULA: Y
+      SEQ_FIRSTRUN_NOAUTHENTICATION: True
     volumes:
       - seq-data:/data
-    networks:
-      - localstack-net
-  admin-api:
-    image: 460116816372.dkr.ecr.eu-west-1.amazonaws.com/verenigingsregister-adminapi:8.200.1
-    environment:
-      OrganisationRegistryUri: https://organisation.dev-vlaanderen.be/
-      PostgreSQLOptions__Host: db
-      PostgreSQLOptions__database: verenigingsregister
-      PostgreSQLOptions__username: root
-      PostgreSQLOptions__password: root
-      
-      OAuth2IntrospectionOptions__ClientId: association-registry-local-dev
-      OAuth2IntrospectionOptions__ClientSecret: a_very=Secr3t*Key
-      OAuth2IntrospectionOptions__Authority: http://acm:5051
-      OAuth2IntrospectionOptions__IntrospectionEndpoint: http://acn:5051/connect/introspect
-      
-      ElasticClientOptions__Uri: http://elastic:9200
-      ElasticClientOptions__Username: elastic
-      ElasticClientOptions__Password: local_development
-      ElasticClientOptions__Indices__Verenigingen: verenigingsregister-verenigingen-admin
-      ElasticClientOptions__Indices__DuplicateDetection: verenigingsregister-duplicate-detection
-
-      BaseUrl: http://127.0.0.1:11004/
-
-      MagdaOptions__Afzender: 1234
-      MagdaOptions__Hoedanigheid: 1234
-      MagdaOptions__Ontvanger: vip.vlaanderen.be
-      MagdaOptions__GeefOndernemingVkboEndpoint: http://wiremock:8080/GeefOndernemingVkboDienst-02.00/soap/WebService
-      MagdaOptions__GeefOndernemingEndpoint: http://wiremock:8080/GeefOndernemingDienst-02.00/soap/WebService
-      MagdaOptions__RegistreerInschrijvingEndpoint: http://wiremock:8080/RegistreerInschrijvingDienst-02.01/soap/WebService
-      MagdaOptions__Timeout: 30
-      
-      COLLECTOR_URL: http://otel-collector:4317
-    ports:
-      - 11004:11004
     networks:
       - localstack-net
 
@@ -105,37 +71,7 @@ services:
       - '20000:20000'
     volumes:
       - ./sftp/cert:/etc/vsftpd/
-      # - ./sftp/logs/vsftpd.log:/var/log/vsftpd.log
       - ./sftp/files:/home/files
-  elasticsearch:
-    image: docker.elastic.co/elasticsearch/elasticsearch:8.4.3
-    ports:
-      - "9200:9200"
-    environment:
-      ELASTIC_PASSWORD: local_development
-      discovery.type: single-node
-      xpack.security.transport.ssl.enabled: false
-      cluster.routing.allocation.disk.watermark.low: 97%
-      cluster.routing.allocation.disk.watermark.high: 98%
-      cluster.routing.allocation.disk.watermark.flood_stage: 99%
-    volumes:
-      - es-data:/usr/share/elasticsearch/data
-    networks:
-      - localstack-net
-  db:
-    container_name: kbomutations_db
-    image: postgres:15.0
-    restart: always
-    environment:
-      POSTGRES_USER: root
-      POSTGRES_PASSWORD: root
-      POSTGRES_DB: verenigingsregister
-    ports:
-      - "5432:5432"
-    volumes:
-      - pg-data:/var/lib/postgresql/data
-    networks:
-      - localstack-net
 
   otel-collector:
     image: otel/opentelemetry-collector-contrib
@@ -146,10 +82,9 @@ services:
       - "4317:4317"   # OTLP gRPC receiver
     networks:
       - localstack-net
+  
 volumes:
   localstack-data:
   seq-data:
-  pg-data:
-  es-data:
 networks:
   localstack-net:

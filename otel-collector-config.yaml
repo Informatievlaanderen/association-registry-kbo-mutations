@@ -4,7 +4,7 @@ receivers:
       grpc:
 
 exporters:
-  logging:
+  debug:
 
   otlphttp:
     endpoint: http://seq/ingest/otlp
@@ -17,12 +17,12 @@ service:
     traces:
       receivers: [ otlp ]
       processors: [ batch ]
-      exporters: [ logging ]
+      exporters: [ debug ]
     metrics:
       receivers: [ otlp ]
       processors: [ batch ]
-      exporters: [ logging ]
+      exporters: [ debug ]
     logs:
       receivers: [ otlp ]
       processors: [ batch ]
-      exporters: [ logging, otlphttp ]
+      exporters: [ debug, otlphttp ]

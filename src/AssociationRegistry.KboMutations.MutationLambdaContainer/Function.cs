@@ -74,7 +74,7 @@ public static class Function
         }
     }
 
-    private static async Task<MutatieBestandProcessor> SetUpFunction(
+    private static async Task<MutatieFtpProcessor> SetUpFunction(
         ILambdaContext context,
         IAmazonSQS amazonSqsClient,
         KboMutationsConfiguration kboMutationsConfiguration,
@@ -86,7 +86,7 @@ public static class Function
         var amazonS3Client = new AmazonS3Client();
         await certProvider.WriteCertificatesToFileSystem(context.Logger, amazonS3Client);
 
-        var mutatieBestandProcessor = new MutatieBestandProcessor(
+        var mutatieBestandProcessor = new MutatieFtpProcessor(
             context.Logger,
             new CurlFtpsClient(context.Logger, kboMutationsConfiguration),
             amazonS3Client,

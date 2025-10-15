@@ -33,7 +33,7 @@ public class CurlFtpsClient : IFtpsClient
                                    $"--cert {_kboMutationsConfiguration.CertPath} " +
                                    $"--key {_kboMutationsConfiguration.KeyPath} --key-type {_kboMutationsConfiguration.KeyType} " +
                                    (!string.IsNullOrEmpty(_kboMutationsConfiguration.CaCertPath) ? $"--cacert {_kboMutationsConfiguration.CaCertPath} " : "") +
-                                   $"{sourceDirectory} --fail --silent --show-error",
+                                   $"{sourceDirectory.TrimEnd('/') + "/"} --fail --silent --show-error",
                        RedirectStandardOutput = true,
                        RedirectStandardError = true,
                        UseShellExecute = false,

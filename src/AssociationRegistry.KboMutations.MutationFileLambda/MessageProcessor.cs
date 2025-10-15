@@ -25,8 +25,6 @@ public class MessageProcessor
     private readonly IAmazonSQS _sqsClient;
     private readonly INotifier _notifier;
 
-    private const string FunctiesFileNamePrefix = "pub_mut_klanten-functies";
-    private const string OndernemingFileNamePrefix = "pub_mut-ondernemingVKBO";
     
     public MessageProcessor(IAmazonS3 s3Client,
         IAmazonSQS sqsClient,
@@ -115,10 +113,10 @@ public class MessageProcessor
     private IEnumerable<IMutatieLijn> ReadMutationFile(string fileName,
         string content)
     {
-        return fileName.ToLower() switch
+        return fileName switch
         {
-            var s when s.StartsWith(OndernemingFileNamePrefix) => ReadMutationLines<OndernemingMutatieLijn>(content),
-            var s when s.StartsWith(FunctiesFileNamePrefix) => ReadMutationLines<FunctieMutatieLijn>(content),
+            var s when s.StartsWith(_kboSyncConfiguration.OndernemingFileNamePrefix) => ReadMutationLines<OndernemingMutatieLijn>(content),
+            var s when s.StartsWith(_kboSyncConfiguration.FunctiesFileNamePrefix) => ReadMutationLines<FunctieMutatieLijn>(content),
             _ => throw new ArgumentException($"Unknown file name: {fileName}", nameof(fileName)),
         };
     }
@@ -145,6 +143,6 @@ public class MessageProcessor
         using var stringReader = new StringReader(content);
         using var csv = new CsvReader(stringReader, config);
 
-        return csv.GetRecords<T>();
+        return csv.GetRecords<T>().ToList();
     }
 }
