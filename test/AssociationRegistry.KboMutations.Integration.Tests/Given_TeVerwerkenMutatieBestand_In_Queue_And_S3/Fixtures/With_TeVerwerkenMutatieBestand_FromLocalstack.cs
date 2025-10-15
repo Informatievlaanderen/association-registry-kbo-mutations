@@ -2,23 +2,17 @@
 using Amazon.Lambda.TestUtilities;
 using Amazon.SQS.Model;
 using AssocationRegistry.KboMutations;
+using AssocationRegistry.KboMutations.Configuration;
 using AssocationRegistry.KboMutations.Notifications;
-using AssociationRegistry.EventStore;
-using AssociationRegistry.Framework;
-using AssociationRegistry.Kbo;
+using AssociationRegistry.KboMutations.MutationFileLambda;
 using AssociationRegistry.KboMutations.MutationLambdaContainer;
 using AssociationRegistry.KboMutations.MutationLambdaContainer.Abstractions;
 using AssociationRegistry.KboMutations.MutationLambdaContainer.Configuration;
 using AssociationRegistry.KboMutations.MutationLambdaContainer.Ftps;
 using AssociationRegistry.KboMutations.Tests.Fixtures;
 using AssociationRegistry.Vereniging;
-using AutoBogus;
-using FluentAssertions;
 using Marten;
 using Marten.Events;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
-using NodaTime;
 using Npgsql;
 using Weasel.Core;
 
@@ -26,6 +20,8 @@ namespace AssociationRegistry.KboMutations.Integration.Tests.Given_TeVerwerkenMu
 
 public class With_TeVerwerkenMutatieBestand_FromLocalstack : WithLocalstackFixture
 {
+    public MessageProcessor MessageProcessor { get; private set; }
+    public MutatieFtpProcessor FtpProcessor { get; private set; }
     public static KboNummer KboNummerBekendeVereniging = KboNummer.Create("0442528054");
     public static KboNummer KboNummerOnbekendeVereniging = KboNummer.Create("0000000097");
     
@@ -56,9 +52,22 @@ public class With_TeVerwerkenMutatieBestand_FromLocalstack : WithLocalstackFixtu
         var certPath = $"{sftpPath}/cert/custom_vsftpd.crt";
         var keyPath = $"{sftpPath}/cert/custom_vsftpd.der";
 
-        foreach (var mutatieBestand in Directory.EnumerateFileSystemEntries(Path.Join(sftpPath, seedFolder)))
+        // Copy all directories and files from seed to in folder
+        foreach (var entry in Directory.EnumerateFileSystemEntries(Path.Join(sftpPath, seedFolder)))
         {
-            File.Copy(mutatieBestand, Path.Join(sftpPath, inFolder, new FileInfo(mutatieBestand).Name), true);
+            var entryInfo = new FileInfo(entry);
+            var destPath = Path.Join(sftpPath, inFolder, entryInfo.Name);
+            
+            if (Directory.Exists(entry))
+            {
+                // Copy directory recursively
+                CopyDirectory(entry, destPath);
+            }
+            else if (File.Exists(entry))
+            {
+                // Copy file
+                File.Copy(entry, destPath, true);
+            }
         }
         
         var kboMutationsConfiguration = new KboMutationsConfiguration
@@ -67,7 +76,8 @@ public class With_TeVerwerkenMutatieBestand_FromLocalstack : WithLocalstackFixtu
             Port = 21000,
             Username = "files",
             Password = "FSBhuNOR",
-            SourcePath = "in",
+            SourcePath = "in/ondernemingen",
+            SourcePathFuncties = "in/functies",
             CachePath = "archive",
             CertPath = certPath,
             CaCertPath = string.Empty,
@@ -77,55 +87,17 @@ public class With_TeVerwerkenMutatieBestand_FromLocalstack : WithLocalstackFixtu
             CurlLocation = "curl",
             AdditionalParams = "-k"
         };
-
-        await SeedVerenigingen(KboNummersToSeed, new NullLogger<EventStore.EventStore>());
-
         await ClearQueue(KboSyncConfiguration.MutationFileQueueUrl);
         await ClearQueue(KboSyncConfiguration.SyncQueueUrl);
 
         SecureFtpClient = new CurlFtpsClient(logger, kboMutationsConfiguration);
 
-        var mutatieBestandProcessor = new MutatieBestandProcessor(logger, SecureFtpClient, AmazonS3Client,
+        FtpProcessor = new MutatieFtpProcessor(logger, SecureFtpClient, AmazonS3Client,
             AmazonSqsClient, kboMutationsConfiguration,
             KboSyncConfiguration, 
             new NullNotifier(new TestLambdaLogger()));
 
-        await mutatieBestandProcessor.ProcessAsync();
-    }
-
-    private static async Task SeedVerenigingen(Dictionary<KboNummer, VCode> kboNummersToSeed, ILogger<EventStore.EventStore> logger)
-    {
-        var documentStore = CreateDocumentStore();
-        
-        await documentStore.Storage.ApplyAllConfiguredChangesToDatabaseAsync();
-        
-        await documentStore.Storage.Database.DeleteAllEventDataAsync();
-
-        
-        var eventConflictResolver =
-            new EventConflictResolver(Array.Empty<IEventPreConflictResolutionStrategy>(), Array.Empty<IEventPostConflictResolutionStrategy>());
-        
-        var repo = new VerenigingsRepository(new EventStore.EventStore(documentStore, eventConflictResolver, logger));
-        
-        foreach (var (kboNummer, vCode) in kboNummersToSeed)
-        {
-            var verenigingMetRechtspersoonlijkheid = VerenigingMetRechtspersoonlijkheid.Registreer(
-                vCode,
-                new VerenigingVolgensKbo
-                {
-                    KboNummer = KboNummer.Create(kboNummer),
-                    Adres = new AdresVolgensKbo(),
-                    Contactgegevens = new ContactgegevensVolgensKbo(),
-                    Naam = $"Bedrijf {kboNummer}",
-                    Startdatum = DateOnly.MinValue,
-                    Type = Verenigingstype.VZW,
-                    Vertegenwoordigers = Array.Empty<VertegenwoordigerVolgensKbo>(),
-                    KorteNaam = $"{{B-{kboNummer}}}"
-                });
-            var result = await repo.Save(verenigingMetRechtspersoonlijkheid, new CommandMetadata("OVO002949", new Instant(), Guid.NewGuid()));
-
-            result.Sequence.Should().BeGreaterThan(0);
-        }
+        MessageProcessor = new MessageProcessor(AmazonS3Client, AmazonSqsClient, new NullNotifier(new TestLambdaLogger()), KboSyncConfiguration);
     }
 
     public static DocumentStore CreateDocumentStore()
@@ -175,4 +147,24 @@ public class With_TeVerwerkenMutatieBestand_FromLocalstack : WithLocalstackFixtu
     }
 
     public List<Message> ReceivedMessages { get; set; }
+    
+    private static void CopyDirectory(string sourceDir, string destinationDir)
+    {
+        // Create destination directory if it doesn't exist
+        Directory.CreateDirectory(destinationDir);
+        
+        // Copy all files in the directory
+        foreach (var file in Directory.GetFiles(sourceDir))
+        {
+            var destFile = Path.Combine(destinationDir, Path.GetFileName(file));
+            File.Copy(file, destFile, true);
+        }
+        
+        // Copy all subdirectories recursively
+        foreach (var subdir in Directory.GetDirectories(sourceDir))
+        {
+            var destSubdir = Path.Combine(destinationDir, Path.GetFileName(subdir));
+            CopyDirectory(subdir, destSubdir);
+        }
+    }
 }
