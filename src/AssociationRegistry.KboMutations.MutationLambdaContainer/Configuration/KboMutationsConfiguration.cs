@@ -11,6 +11,7 @@ public class KboMutationsConfiguration
     public string Username { get; set; } = null!;
     public string Password { get; set; } = null!;
     public string SourcePath { get; set; } = null!;
+    public string SourcePathFuncties { get; set; } = null!;
     public string CachePath { get; set; } = null!;
     public string CertPath { get; set; } = null!;
     public string CaCertPath { get; set; } = null!;

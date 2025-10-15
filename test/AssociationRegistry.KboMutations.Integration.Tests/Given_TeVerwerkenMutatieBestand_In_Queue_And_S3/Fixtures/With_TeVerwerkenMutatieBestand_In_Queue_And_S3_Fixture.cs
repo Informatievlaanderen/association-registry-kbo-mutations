@@ -28,7 +28,7 @@ namespace AssociationRegistry.KboMutations.Integration.Tests.Given_TeVerwerkenMu
 public class With_TeVerwerkenMutatieBestand_In_Queue_And_S3_Fixture : WithLocalstackFixture
 {
     public TeVerwerkenMutatieBestandMessage TeVerwerkenMutatieBestandMessage { get; }
-    public MutatieLijn[] MutatieLijnen { get; set; }
+    public OndernemingMutatieLijn[] MutatieLijnen { get; set; }
 
     public With_TeVerwerkenMutatieBestand_In_Queue_And_S3_Fixture() : base(
         WellKnownBucketNames.MutationFileBucketName,
@@ -38,7 +38,7 @@ public class With_TeVerwerkenMutatieBestand_In_Queue_And_S3_Fixture : WithLocals
     {
         TeVerwerkenMutatieBestandMessage = CustomFixture.Default.Create<TeVerwerkenMutatieBestandMessage>();
         MutatieLijnen = CustomFixture.Default
-            .CreateMany<MutatieLijn>()
+            .CreateMany<OndernemingMutatieLijn>()
             .ToArray();
     }
 

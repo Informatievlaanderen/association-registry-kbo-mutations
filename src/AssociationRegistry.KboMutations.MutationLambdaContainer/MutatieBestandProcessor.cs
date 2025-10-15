@@ -99,16 +99,24 @@ public class MutatieBestandProcessor
     {
         _logger.LogInformation($"Fetching mutation files from folder {_kboMutationsConfiguration.SourcePath} started.");
 
-        var sourceDirectoryUri = _baseUriBuilder.AppendDir(_kboMutationsConfiguration.SourcePath);
+        var mutationFiles = new List<MagdaMutatieBestand>();
+        mutationFiles.AddRange(GetMagdaMutatieBestandenVoor(_kboMutationsConfiguration.SourcePath));
+        mutationFiles.AddRange(GetMagdaMutatieBestandenVoor(_kboMutationsConfiguration.SourcePathFuncties));
+
+        _logger.LogInformation($"Found {mutationFiles.Count} mutation files to process");
+        _logger.LogInformation($"Fetching mutation files from folder {_kboMutationsConfiguration.SourcePath} finished.");
+        return mutationFiles;
+    }
+
+    private List<MagdaMutatieBestand> GetMagdaMutatieBestandenVoor(string sourcePath)
+    {
+        var sourceDirectoryUri = _baseUriBuilder.AppendDir(sourcePath);
         var curlListResult = _ftpsClient.GetListing(sourceDirectoryUri.ToString());
         var mutationFiles =
             FtpsListParser.Parse(sourceDirectoryUri, curlListResult)
                 .Select(ftpsListItem => new MagdaMutatieBestand(ftpsListItem.FullName, ftpsListItem.Name))
                 .OrderBy(item => item.FtpPath)
                 .ToList();
-
-        _logger.LogInformation($"Found {mutationFiles.Count} mutation files to process");
-        _logger.LogInformation($"Fetching mutation files from folder {_kboMutationsConfiguration.SourcePath} finished.");
         return mutationFiles;
     }
 
