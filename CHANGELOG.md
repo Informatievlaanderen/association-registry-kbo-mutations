@@ -1,3 +1,10 @@
+## [1.14.1](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.14.0...v1.14.1) (2025-10-23)
+
+
+### Bug Fixes
+
+* or-2946 change logging back ([6a545db](https://github.com/informatievlaanderen/association-registry-kbo-mutations/commit/6a545dbc4aca91b8c99c742efaa5b93b7c0125a2))
+
 # [1.14.0](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.13.3...v1.14.0) (2025-10-23)
 
 
