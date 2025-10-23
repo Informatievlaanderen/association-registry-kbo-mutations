@@ -1,3 +1,16 @@
+# [1.14.0](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.13.3...v1.14.0) (2025-10-23)
+
+
+### Bug Fixes
+
+* or-1847 fix prefixes ([4def1a1](https://github.com/informatievlaanderen/association-registry-kbo-mutations/commit/4def1a112c71ebd2be9bbde8f5d497069e0ff65b))
+
+
+### Features
+
+* or-1847 process functiehouder files from magda ([93c6055](https://github.com/informatievlaanderen/association-registry-kbo-mutations/commit/93c6055573bf942534f38e31d84fc6a88810a0ab))
+* or-1847 read and process functies files ([80d8b85](https://github.com/informatievlaanderen/association-registry-kbo-mutations/commit/80d8b852ba35e57a13e0deb8061da007638243fa))
+
 ## [1.13.3](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.13.2...v1.13.3) (2025-01-24)
 
 
