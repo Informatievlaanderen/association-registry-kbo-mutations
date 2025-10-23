@@ -37,7 +37,7 @@ public class MutationFileLambdaTests
             {
                 new SQSEvent.SQSMessage()
                 {
-                    Body = JsonConvert.SerializeObject(new TeVerwerkenMutatieBestandMessage("test.csv"))
+                    Body = JsonConvert.SerializeObject(new TeVerwerkenMutatieBestandMessage("pub_mut_klanten-functies.csv"))
                 }
             }
         }, Mock.Of<ILambdaLogger>(), CancellationToken.None);
