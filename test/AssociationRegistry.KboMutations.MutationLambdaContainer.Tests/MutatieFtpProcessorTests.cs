@@ -36,8 +36,8 @@ public class MutatieFtpProcessorTests
             amazonSqs.Object, new KboMutationsConfiguration(){SourcePath = "test", Host = "host", Port = 123, CachePath = "cache"}, new KboSyncConfiguration(), Mock.Of<INotifier>());
         await sut.ProcessAsync();
         
-        amazonS3.Verify(x => x.PutObjectAsync(It.IsAny<PutObjectRequest>(), It.IsAny<CancellationToken>()), Times.Exactly(4));
-        amazonSqs.Verify(x => x.SendMessageAsync(It.IsAny<SendMessageRequest>(), It.IsAny<CancellationToken>()), Times.Exactly(4));
+        amazonS3.Verify(x => x.PutObjectAsync(It.IsAny<PutObjectRequest>(), It.IsAny<CancellationToken>()), Times.Exactly(6));
+        amazonSqs.Verify(x => x.SendMessageAsync(It.IsAny<SendMessageRequest>(), It.IsAny<CancellationToken>()), Times.Exactly(6));
 
         var ftpsListItems = FtpsListParser.Parse(new FtpUriBuilder("host", 21), result);
 

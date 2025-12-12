@@ -3,12 +3,15 @@ using System.Text;
 using System.Text.Unicode;
 using Amazon.Lambda.Core;
 using Amazon.Lambda.SQSEvents;
+using Amazon.Lambda.TestUtilities;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.SQS;
 using Amazon.SQS.Model;
 using AssocationRegistry.KboMutations.Configuration;
 using AssocationRegistry.KboMutations.Messages;
+using AssociationRegistry.KboMutations.MutationFileLambda.Csv;
+using AssociationRegistry.KboMutations.MutationFileLambda.FileProcessors;
 using AssociationRegistry.Notifications;
 using Moq;
 using Newtonsoft.Json;
@@ -24,12 +27,15 @@ public class MutationFileLambdaTests
         var s3client = SetUpS3ClientMock();
         var sqsClient = SetUpSqsClientMock();
 
-        var messageProcessor = new MessageProcessor(
+        var messageProcessor = new TeVerwerkenMessageProcessor(
             s3Client: s3client.Object,
             sqsClient.Object,
             new Mock<INotifier>().Object,
-            new KboSyncConfiguration()
-        );
+            new KboSyncConfiguration(),
+            MutatieBestandProcessors.CreateDefault(new KboSyncConfiguration(),
+                sqsClient.Object,
+                new MutatieBestandParser(),
+                new TestLambdaLogger()));
 
         await messageProcessor.ProcessMessage(new SQSEvent()
         {

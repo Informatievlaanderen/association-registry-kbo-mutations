@@ -5,6 +5,8 @@ using AssocationRegistry.KboMutations;
 using AssocationRegistry.KboMutations.Configuration;
 using AssocationRegistry.KboMutations.Notifications;
 using AssociationRegistry.KboMutations.MutationFileLambda;
+using AssociationRegistry.KboMutations.MutationFileLambda.Csv;
+using AssociationRegistry.KboMutations.MutationFileLambda.FileProcessors;
 using AssociationRegistry.KboMutations.MutationLambdaContainer;
 using AssociationRegistry.KboMutations.MutationLambdaContainer.Abstractions;
 using AssociationRegistry.KboMutations.MutationLambdaContainer.Configuration;
@@ -20,7 +22,7 @@ namespace AssociationRegistry.KboMutations.Integration.Tests.Given_TeVerwerkenMu
 
 public class With_TeVerwerkenMutatieBestand_FromLocalstack : WithLocalstackFixture
 {
-    public MessageProcessor MessageProcessor { get; private set; }
+    public TeVerwerkenMessageProcessor TeVerwerkenMessageProcessor { get; private set; }
     public MutatieFtpProcessor FtpProcessor { get; private set; }
     public static KboNummer KboNummerBekendeVereniging = KboNummer.Create("0442528054");
     public static KboNummer KboNummerOnbekendeVereniging = KboNummer.Create("0000000097");
@@ -78,6 +80,7 @@ public class With_TeVerwerkenMutatieBestand_FromLocalstack : WithLocalstackFixtu
             Password = "FSBhuNOR",
             SourcePath = "in/ondernemingen",
             SourcePathFuncties = "in/functies",
+            SourcePathPersonen = "in/personen",
             CachePath = "archive",
             CertPath = certPath,
             CaCertPath = string.Empty,
@@ -94,10 +97,17 @@ public class With_TeVerwerkenMutatieBestand_FromLocalstack : WithLocalstackFixtu
 
         FtpProcessor = new MutatieFtpProcessor(logger, SecureFtpClient, AmazonS3Client,
             AmazonSqsClient, kboMutationsConfiguration,
-            KboSyncConfiguration, 
+            KboSyncConfiguration,
             new NullNotifier(new TestLambdaLogger()));
 
-        MessageProcessor = new MessageProcessor(AmazonS3Client, AmazonSqsClient, new NullNotifier(new TestLambdaLogger()), KboSyncConfiguration);
+        TeVerwerkenMessageProcessor = new TeVerwerkenMessageProcessor(AmazonS3Client,
+            AmazonSqsClient,
+            new NullNotifier(new TestLambdaLogger()),
+            KboSyncConfiguration,
+            MutatieBestandProcessors.CreateDefault(KboSyncConfiguration,
+                AmazonSqsClient,
+                new MutatieBestandParser(),
+                logger));
     }
 
     public static DocumentStore CreateDocumentStore()

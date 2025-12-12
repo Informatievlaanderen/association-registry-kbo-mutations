@@ -11,13 +11,15 @@ using AssocationRegistry.KboMutations;
 using AssocationRegistry.KboMutations.Configuration;
 using AssocationRegistry.KboMutations.Notifications;
 using AssociationRegistry.KboMutations.MutationFileLambda.Configuration;
+using AssociationRegistry.KboMutations.MutationFileLambda.Csv;
+using AssociationRegistry.KboMutations.MutationFileLambda.FileProcessors;
 using Microsoft.Extensions.Configuration;
 
 namespace AssociationRegistry.KboMutations.MutationFileLambda;
 
 public class Function
 {
-    private static MessageProcessor? _processor;
+    private static TeVerwerkenMessageProcessor? _processor;
 
     private static async Task<int> Main()
     {
@@ -54,7 +56,11 @@ public class Function
         var s3Client = new AmazonS3Client();
         var sqsClient = new AmazonSQSClient();
 
-        _processor = new MessageProcessor(s3Client, sqsClient, notifier, amazonKboSyncConfiguration);
+        _processor = new TeVerwerkenMessageProcessor(s3Client,
+            sqsClient,
+            notifier,
+            amazonKboSyncConfiguration,
+            MutatieBestandProcessors.CreateDefault(amazonKboSyncConfiguration, sqsClient, new MutatieBestandParser(), context.Logger));
 
         context.Logger.LogInformation($"KBO mutation file lambda gestart. Aantal berichten te verwerken: {@event.Records.Count}");
         await _processor.ProcessMessage(@event, context.Logger, CancellationToken.None);

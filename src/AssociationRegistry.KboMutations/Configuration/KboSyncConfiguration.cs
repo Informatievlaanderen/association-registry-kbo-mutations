@@ -10,6 +10,7 @@ public record KboSyncConfiguration
     public string SyncQueueUrl { get; set; }
     public string SyncDeadLetterQueueUrl { get; set; }
     
+    public string PersonenFileNamePrefix { get; set; } = "pub_mut_personen";
     public string FunctiesFileNamePrefix { get; set; } = "pub_mut_klanten-functies";
     
     public string OndernemingFileNamePrefix { get; set; } = "pub_mut-ondernemingVKBO";
