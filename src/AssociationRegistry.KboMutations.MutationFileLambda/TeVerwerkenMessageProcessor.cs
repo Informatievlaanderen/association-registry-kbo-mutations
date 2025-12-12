@@ -11,6 +11,7 @@ using AssocationRegistry.KboMutations.Messages;
 using AssocationRegistry.KboMutations.Models;
 using AssocationRegistry.KboMutations.Notifications;
 using AssociationRegistry.Kbo;
+using AssociationRegistry.KboMutations.MutationFileLambda.FileProcessors;
 using AssociationRegistry.KboMutations.MutationFileLambda.Logging;
 using AssociationRegistry.Notifications;
 using CsvHelper;
@@ -18,23 +19,26 @@ using CsvHelper.Configuration;
 
 namespace AssociationRegistry.KboMutations.MutationFileLambda;
 
-public class MessageProcessor
+public class TeVerwerkenMessageProcessor
 {
     private readonly KboSyncConfiguration _kboSyncConfiguration;
+    private readonly MutatieBestandProcessors _mutatieBestandProcessors;
     private readonly IAmazonS3 _s3Client;
     private readonly IAmazonSQS _sqsClient;
     private readonly INotifier _notifier;
 
     
-    public MessageProcessor(IAmazonS3 s3Client,
+    public TeVerwerkenMessageProcessor(IAmazonS3 s3Client,
         IAmazonSQS sqsClient,
         INotifier notifier,
-        KboSyncConfiguration kboSyncConfiguration)
+        KboSyncConfiguration kboSyncConfiguration,
+        MutatieBestandProcessors mutatieBestandProcessors)
     {
         _s3Client = s3Client;
         _sqsClient = sqsClient;
         _notifier = notifier;
         _kboSyncConfiguration = kboSyncConfiguration;
+        _mutatieBestandProcessors = mutatieBestandProcessors;
     }
 
     public async Task ProcessMessage(SQSEvent sqsEvent,
@@ -88,37 +92,14 @@ public class MessageProcessor
         var content = await FetchMutationFileContent(fetchMutatieBestandResponse.ResponseStream, cancellationToken);
 
         contextLogger.LogInformation($"MutatieBestand found");
-        
-        var mutatielijnen = ReadMutationFile(message.Key, content).ToList();
 
-        contextLogger.LogInformation($"Found {mutatielijnen.Count} mutatielijnen");
+        var processor = _mutatieBestandProcessors.FindProcessorOrThrow(message.Key);
 
-        var responses = new List<SendMessageResponse>();
-        foreach (var mutatielijn in mutatielijnen)
-        {
-            contextLogger.LogInformation($"Sending {mutatielijn.Ondernemingsnummer} to synchronize queue");
-
-            var messageBody = JsonSerializer.Serialize(
-                new TeSynchroniserenKboNummerMessage(mutatielijn.Ondernemingsnummer));
-
-            responses.Add(await _sqsClient.SendMessageAsync(_kboSyncConfiguration.SyncQueueUrl,messageBody,
-                cancellationToken));
-        }
+        var responses = await processor.Handle(message.Key, content, cancellationToken);
 
         await _s3Client.DeleteObjectAsync(_kboSyncConfiguration.MutationFileBucketName, message.Key, cancellationToken);
 
         return responses;
-    }
-    
-    private IEnumerable<IMutatieLijn> ReadMutationFile(string fileName,
-        string content)
-    {
-        return fileName switch
-        {
-            var s when s.StartsWith(_kboSyncConfiguration.OndernemingFileNamePrefix) => ReadMutationLines<OndernemingMutatieLijn>(content),
-            var s when s.StartsWith(_kboSyncConfiguration.FunctiesFileNamePrefix) => ReadMutationLines<FunctieMutatieLijn>(content),
-            _ => throw new ArgumentException($"Unknown file name: {fileName}", nameof(fileName)),
-        };
     }
 
     private static async Task<string> FetchMutationFileContent(

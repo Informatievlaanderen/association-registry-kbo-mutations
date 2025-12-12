@@ -30,13 +30,13 @@ public class When_Processing_Incoming_Ftps_Through_Both_Lambdas : IClassFixture<
         var messages = fixture.FetchMessages(fixture.KboSyncConfiguration.MutationFileQueueUrl).GetAwaiter().GetResult();
         
         messages.Should().NotBeEmpty();
-        messages.Should().HaveCount(4);
+        messages.Should().HaveCount(5);
 
         foreach (var message in messages)
         {
             try
             {
-                _fixture.MessageProcessor
+                _fixture.TeVerwerkenMessageProcessor
                     .ProcessMessage(new SQSEvent
                     {
                         Records =
@@ -69,12 +69,22 @@ public class When_Processing_Incoming_Ftps_Through_Both_Lambdas : IClassFixture<
     private static async Task VerifyKboEventsWereAdded(ITestOutputHelper helper, With_TeVerwerkenMutatieBestand_FromLocalstack fixture)
     {
         var messages = await fixture.FetchMessages(fixture.KboSyncConfiguration.SyncQueueUrl);
-        messages.Should().HaveCount(3);
+        messages.Should().HaveCount(5);
 
-        messages.Select(x => JsonSerializer.Deserialize<TeSynchroniserenKboNummerMessage>(x.Body)).ToArray().Should().BeEquivalentTo([
+        var kboMessages = messages.Where(x => x.Body.Contains("KboNummer"))
+            .Select(x => JsonSerializer.Deserialize<TeSynchroniserenKboNummerMessage>(x.Body)).ToArray();
+        var inszMessages = messages.Where(x => x.Body.Contains("insz"))
+            .Select(x => JsonSerializer.Deserialize<AssociationRegistry.KboMutations.Messages.TeSynchroniserenInszMessage>(x.Body)).ToArray();
+
+        kboMessages.Should().BeEquivalentTo([
+            new TeSynchroniserenKboNummerMessage(KboNummer.Create("0000000196")),
             new TeSynchroniserenKboNummerMessage(KboNummer.Create("0000000196")),
             new TeSynchroniserenKboNummerMessage(KboNummer.Create("1999999745")),
-            new TeSynchroniserenKboNummerMessage(KboNummer.Create("0000000196")),
+        ]);
+
+        inszMessages.Should().BeEquivalentTo([
+            new AssociationRegistry.KboMutations.Messages.TeSynchroniserenInszMessage("0000000196"),
+            new AssociationRegistry.KboMutations.Messages.TeSynchroniserenInszMessage("1999999745"),
         ]);
     }
 }

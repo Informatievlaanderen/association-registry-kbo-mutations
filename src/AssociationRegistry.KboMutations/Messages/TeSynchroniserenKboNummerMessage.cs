@@ -1,0 +1,3 @@
+namespace AssociationRegistry.KboMutations.Messages;
+
+public record TeSynchroniserenKboNummerMessage(string KboNummer);

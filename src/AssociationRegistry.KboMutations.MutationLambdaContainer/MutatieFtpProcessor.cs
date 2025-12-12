@@ -102,6 +102,7 @@ public class MutatieFtpProcessor
         var mutationFiles = new List<MagdaMutatieBestand>();
         mutationFiles.AddRange(GetMagdaMutatieBestandenVoor(_kboMutationsConfiguration.SourcePath));
         mutationFiles.AddRange(GetMagdaMutatieBestandenVoor(_kboMutationsConfiguration.SourcePathFuncties));
+        mutationFiles.AddRange(GetMagdaMutatieBestandenVoor(_kboMutationsConfiguration.SourcePathPersonen));
 
         _logger.LogInformation($"Found {mutationFiles.Count} mutation files to process");
         _logger.LogInformation($"Fetching mutation files from folder {_kboMutationsConfiguration.SourcePath} finished.");
