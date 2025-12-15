@@ -1,3 +1,3 @@
 namespace AssociationRegistry.KboMutations.Messages;
 
-public record TeSynchroniserenInszMessage(string insz);
+public record TeSynchroniserenInszMessage(string Insz);

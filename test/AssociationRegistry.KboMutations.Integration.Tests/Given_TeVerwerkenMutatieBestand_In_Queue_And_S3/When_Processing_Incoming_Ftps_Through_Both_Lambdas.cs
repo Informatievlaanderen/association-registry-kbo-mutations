@@ -73,7 +73,7 @@ public class When_Processing_Incoming_Ftps_Through_Both_Lambdas : IClassFixture<
 
         var kboMessages = messages.Where(x => x.Body.Contains("KboNummer"))
             .Select(x => JsonSerializer.Deserialize<TeSynchroniserenKboNummerMessage>(x.Body)).ToArray();
-        var inszMessages = messages.Where(x => x.Body.Contains("insz"))
+        var inszMessages = messages.Where(x => x.Body.Contains("Insz"))
             .Select(x => JsonSerializer.Deserialize<AssociationRegistry.KboMutations.Messages.TeSynchroniserenInszMessage>(x.Body)).ToArray();
 
         kboMessages.Should().BeEquivalentTo([
