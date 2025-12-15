@@ -93,7 +93,13 @@ public class TeVerwerkenMessageProcessor
 
         contextLogger.LogInformation($"MutatieBestand found");
 
-        var processor = _mutatieBestandProcessors.FindProcessorOrThrow(message.Key);
+        var processor = _mutatieBestandProcessors.FindProcessorOrNull(message.Key);
+        
+        if (processor == null)
+        {
+            contextLogger.LogCritical("Could not find mutatie bestand processor for message " + message.Key);
+            return [];
+        }
 
         var responses = await processor.Handle(message.Key, content, cancellationToken);
 

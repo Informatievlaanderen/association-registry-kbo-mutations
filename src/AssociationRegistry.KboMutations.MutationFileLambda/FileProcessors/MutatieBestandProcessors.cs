@@ -21,7 +21,6 @@ public class MutatieBestandProcessors: ReadOnlyCollection<IMutatieBestandProcess
         ]);
     }
 
-    public IMutatieBestandProcessor FindProcessorOrThrow(string fileName)
-        => this.SingleOrDefault(x => x.CanHandle(fileName)) ??
-           throw new InvalidOperationException($"Could not find processor for {fileName}");
+    public IMutatieBestandProcessor? FindProcessorOrNull(string fileName)
+        => this.SingleOrDefault(x => x.CanHandle(fileName));
 }

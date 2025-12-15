@@ -48,7 +48,7 @@ public class PersoonMutatieBestandProcessor: IMutatieBestandProcessor
             var messageBody = JsonSerializer.Serialize(
                 new TeSynchroniserenInszMessage(mutatielijn.Insz));
 
-            responses.Add(await _sqsClient.SendMessageAsync(_kboSyncConfiguration.SyncQueueUrl,messageBody,
+            responses.Add(await _sqsClient.SendMessageAsync(_kboSyncConfiguration.SyncQueueUrl, messageBody,
                 cancellationToken));
         }
         
