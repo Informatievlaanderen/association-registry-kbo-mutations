@@ -1,3 +1,12 @@
+# [1.15.0](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.14.1...v1.15.0) (2025-12-18)
+
+
+### Features
+
+* or-2939 import xml instead of csv for people ([81a57ce](https://github.com/informatievlaanderen/association-registry-kbo-mutations/commit/81a57ce2159e58c949e1a789cf933f9d8be7b3b6))
+* or-2939 minor fixes, don't throw when not handling a file ([87d5389](https://github.com/informatievlaanderen/association-registry-kbo-mutations/commit/87d53893caae9c2dad815f65e7650a5f9b132c2f))
+* or-2939 process persoon mutatie bestanden ([b54073b](https://github.com/informatievlaanderen/association-registry-kbo-mutations/commit/b54073bb3af4c71ef29e22aad1046f1fc4571ba6))
+
 ## [1.14.1](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.14.0...v1.14.1) (2025-10-23)
 
 
