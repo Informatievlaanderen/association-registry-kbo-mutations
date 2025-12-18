@@ -4,15 +4,14 @@ namespace AssocationRegistry.KboMutations.Models;
 
 public class PersoonMutatieLijn
 {
-    // schema available at https://vlaamseoverheid.atlassian.net/wiki/spaces/MG/pages/516129060/Interface+PubliceerOndernemingVKBO-02.00
-    [Index(0)] public DateTime DatumModificatie { get; init; }
-    
-    [Index(6)] public string Insz { get; init; } = null!;
+
+    public string Insz { get; init; } = null!;
+
+    public bool Overleden { get; init; }
 
     protected bool Equals(PersoonMutatieLijn other)
     {
-        return DatumModificatie.Equals(other.DatumModificatie) &&
-               Insz == other.Insz;
+        return Insz == other.Insz;
     }
 
     public override bool Equals(object? obj)
@@ -25,7 +24,7 @@ public class PersoonMutatieLijn
 
     public override int GetHashCode()
     {
-        return GetHashCodeFromField(Insz, DatumModificatie.GetHashCode());
+        return GetHashCodeFromField(Insz, Insz.GetHashCode());
     }
 
     private static int GetHashCodeFromField(object field, int hashCode)

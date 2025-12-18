@@ -4,7 +4,7 @@ using CsvHelper.Configuration;
 
 namespace AssociationRegistry.KboMutations.MutationFileLambda.Csv;
 
-public class MutatieBestandParser : IMutatieBestandParser
+public class CsvMutatieBestandParser : ICsvMutatieBestandParser
 {
     public IEnumerable<T> ParseMutatieLijnen<T>(string content)
     {

@@ -60,7 +60,9 @@ public class Function
             sqsClient,
             notifier,
             amazonKboSyncConfiguration,
-            MutatieBestandProcessors.CreateDefault(amazonKboSyncConfiguration, sqsClient, new MutatieBestandParser(), context.Logger));
+            MutatieBestandProcessors.CreateDefault(amazonKboSyncConfiguration,
+                sqsClient,
+                context.Logger));
 
         context.Logger.LogInformation($"KBO mutation file lambda gestart. Aantal berichten te verwerken: {@event.Records.Count}");
         await _processor.ProcessMessage(@event, context.Logger, CancellationToken.None);

@@ -12,12 +12,17 @@ public class MutatieBestandProcessors: ReadOnlyCollection<IMutatieBestandProcess
     {
     }
 
-    public static MutatieBestandProcessors CreateDefault(KboSyncConfiguration kboSyncConfiguration,IAmazonSQS sqsClient, IMutatieBestandParser bestandParser, ILambdaLogger contextLogger)
+    public static MutatieBestandProcessors CreateDefault(KboSyncConfiguration kboSyncConfiguration,
+        IAmazonSQS sqsClient,
+        ILambdaLogger contextLogger)
     {
+        var csvParser = new CsvMutatieBestandParser();
+        var xmlParser = new PersoonXmlMutatieBestandParser();
+
         return new([
-            new OndernemingMutatieBestandProcessor(kboSyncConfiguration, sqsClient, bestandParser, contextLogger),
-            new FunctieMutatieBestandProcessor(kboSyncConfiguration, sqsClient, bestandParser, contextLogger),
-            new PersoonMutatieBestandProcessor(kboSyncConfiguration, sqsClient, bestandParser, contextLogger),
+            new OndernemingMutatieBestandProcessor(kboSyncConfiguration, sqsClient, csvParser, contextLogger),
+            new FunctieMutatieBestandProcessor(kboSyncConfiguration, sqsClient, csvParser, contextLogger),
+            new PersoonMutatieBestandProcessor(kboSyncConfiguration, sqsClient, xmlParser, contextLogger),
         ]);
     }
 

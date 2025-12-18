@@ -69,7 +69,7 @@ public class When_Processing_Incoming_Ftps_Through_Both_Lambdas : IClassFixture<
     private static async Task VerifyKboEventsWereAdded(ITestOutputHelper helper, With_TeVerwerkenMutatieBestand_FromLocalstack fixture)
     {
         var messages = await fixture.FetchMessages(fixture.KboSyncConfiguration.SyncQueueUrl);
-        messages.Should().HaveCount(5);
+        messages.Should().HaveCount(6);
 
         var kboMessages = messages.Where(x => x.Body.Contains("KboNummer"))
             .Select(x => JsonSerializer.Deserialize<TeSynchroniserenKboNummerMessage>(x.Body)).ToArray();
@@ -83,8 +83,9 @@ public class When_Processing_Incoming_Ftps_Through_Both_Lambdas : IClassFixture<
         ]);
 
         inszMessages.Should().BeEquivalentTo([
-            new AssociationRegistry.KboMutations.Messages.TeSynchroniserenInszMessage("0000000196"),
-            new AssociationRegistry.KboMutations.Messages.TeSynchroniserenInszMessage("1999999745"),
+            new AssociationRegistry.KboMutations.Messages.TeSynchroniserenInszMessage("43030003000", true),
+            new AssociationRegistry.KboMutations.Messages.TeSynchroniserenInszMessage("90000837000", true),
+            new AssociationRegistry.KboMutations.Messages.TeSynchroniserenInszMessage("81010006400", false),
         ]);
     }
 }
