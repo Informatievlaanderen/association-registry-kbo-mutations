@@ -34,7 +34,6 @@ public class MutationFileLambdaTests
             new KboSyncConfiguration(),
             MutatieBestandProcessors.CreateDefault(new KboSyncConfiguration(),
                 sqsClient.Object,
-                new MutatieBestandParser(),
                 new TestLambdaLogger()));
 
         await messageProcessor.ProcessMessage(new SQSEvent()

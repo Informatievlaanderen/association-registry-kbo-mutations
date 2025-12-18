@@ -106,7 +106,6 @@ public class With_TeVerwerkenMutatieBestand_FromLocalstack : WithLocalstackFixtu
             KboSyncConfiguration,
             MutatieBestandProcessors.CreateDefault(KboSyncConfiguration,
                 AmazonSqsClient,
-                new MutatieBestandParser(),
                 logger));
     }
 

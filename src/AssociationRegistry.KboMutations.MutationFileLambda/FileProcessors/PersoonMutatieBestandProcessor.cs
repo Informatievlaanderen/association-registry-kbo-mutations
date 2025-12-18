@@ -17,17 +17,17 @@ public class PersoonMutatieBestandProcessor: IMutatieBestandProcessor
 {
     private readonly KboSyncConfiguration _kboSyncConfiguration;
     private readonly IAmazonSQS _sqsClient;
-    private readonly IMutatieBestandParser _bestandParser;
+    private readonly IPersoonXmlMutatieBestandParser _xmlParser;
     private readonly ILambdaLogger _contextLogger;
 
     public PersoonMutatieBestandProcessor(KboSyncConfiguration kboSyncConfiguration,
         IAmazonSQS sqsClient,
-        IMutatieBestandParser bestandParser,
+        IPersoonXmlMutatieBestandParser xmlParser,
         ILambdaLogger contextLogger)
     {
         _kboSyncConfiguration = kboSyncConfiguration;
         _sqsClient = sqsClient;
-        _bestandParser = bestandParser;
+        _xmlParser = xmlParser;
         _contextLogger = contextLogger;
     }
     
@@ -36,7 +36,7 @@ public class PersoonMutatieBestandProcessor: IMutatieBestandProcessor
 
     public async Task<List<SendMessageResponse>> Handle(string filename, string content, CancellationToken cancellationToken)
     {
-        var mutatielijnen = _bestandParser.ParseMutatieLijnen<PersoonMutatieLijn>(content).ToArray();
+        var mutatielijnen = _xmlParser.ParseMutatieLijnen(content).ToArray();
 
         _contextLogger.LogInformation($"Found {mutatielijnen.Length} mutatielijnen");
 
@@ -46,7 +46,7 @@ public class PersoonMutatieBestandProcessor: IMutatieBestandProcessor
             _contextLogger.LogInformation($"Sending persoon to synchronize queue");
 
             var messageBody = JsonSerializer.Serialize(
-                new TeSynchroniserenInszMessage(mutatielijn.Insz));
+                new TeSynchroniserenInszMessage(mutatielijn.Insz, mutatielijn.Overleden));
 
             responses.Add(await _sqsClient.SendMessageAsync(_kboSyncConfiguration.SyncQueueUrl, messageBody,
                 cancellationToken));

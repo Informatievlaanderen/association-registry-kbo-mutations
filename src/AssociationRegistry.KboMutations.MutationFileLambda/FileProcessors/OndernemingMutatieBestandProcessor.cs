@@ -16,17 +16,17 @@ public class OndernemingMutatieBestandProcessor: IMutatieBestandProcessor
 {
     private readonly KboSyncConfiguration _kboSyncConfiguration;
     private readonly IAmazonSQS _sqsClient;
-    private readonly IMutatieBestandParser _bestandParser;
+    private readonly ICsvMutatieBestandParser _csvParser;
     private readonly ILambdaLogger _contextLogger;
 
     public OndernemingMutatieBestandProcessor(KboSyncConfiguration kboSyncConfiguration,
         IAmazonSQS sqsClient,
-        IMutatieBestandParser bestandParser,
+        ICsvMutatieBestandParser csvParser,
         ILambdaLogger contextLogger)
     {
         _kboSyncConfiguration = kboSyncConfiguration;
         _sqsClient = sqsClient;
-        _bestandParser = bestandParser;
+        _csvParser = csvParser;
         _contextLogger = contextLogger;
     }
     
@@ -35,7 +35,7 @@ public class OndernemingMutatieBestandProcessor: IMutatieBestandProcessor
 
     public async Task<List<SendMessageResponse>> Handle(string filename, string content, CancellationToken cancellationToken)
     {
-        var mutatielijnen = _bestandParser.ParseMutatieLijnen<OndernemingMutatieLijn>(content).ToArray();
+        var mutatielijnen = _csvParser.ParseMutatieLijnen<OndernemingMutatieLijn>(content).ToArray();
 
         _contextLogger.LogInformation($"Found {mutatielijnen.Length} mutatielijnen");
 
