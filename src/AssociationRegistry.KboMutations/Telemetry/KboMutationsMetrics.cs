@@ -1,5 +1,6 @@
 namespace AssociationRegistry.KboMutations.Telemetry;
 
+using System.Diagnostics;
 using System.Diagnostics.Metrics;
 
 public class KboMutationsMetrics
@@ -44,34 +45,48 @@ public class KboMutationsMetrics
 
     public void RecordFileProcessed(string fileType, bool success)
     {
-        _filesProcessed.Add(1,
-            new KeyValuePair<string, object?>("file.type", fileType),
-            new KeyValuePair<string, object?>("success", success));
+        var tags = new TagList
+        {
+            { "file.type", fileType },
+            { "success", success }
+        };
+        _filesProcessed.Add(1, tags);
     }
 
     public void RecordMutationPublished(string mutationType)
     {
-        _mutationsPublished.Add(1,
-            new KeyValuePair<string, object?>("mutation.type", mutationType));
+        var tags = new TagList
+        {
+            { "mutation.type", mutationType }
+        };
+        _mutationsPublished.Add(1, tags);
     }
 
     public void RecordRecordsParsed(string fileType, int count)
     {
-        _recordsParsed.Add(count,
-            new KeyValuePair<string, object?>("file.type", fileType));
+        var tags = new TagList
+        {
+            { "file.type", fileType }
+        };
+        _recordsParsed.Add(count, tags);
     }
 
     public void RecordRecordsSkipped(string fileType, int count, string reason)
     {
-        _recordsSkipped.Add(count,
-            new KeyValuePair<string, object?>("file.type", fileType),
-            new KeyValuePair<string, object?>("reason", reason));
+        var tags = new TagList
+        {
+            { "file.type", fileType },
+            { "reason", reason }
+        };
+        _recordsSkipped.Add(count, tags);
     }
-
 
     public void RecordFileSize(string fileType, long sizeBytes)
     {
-        _fileSizeBytes.Record(sizeBytes,
-            new KeyValuePair<string, object?>("file.type", fileType));
+        var tags = new TagList
+        {
+            { "file.type", fileType }
+        };
+        _fileSizeBytes.Record(sizeBytes, tags);
     }
 }
