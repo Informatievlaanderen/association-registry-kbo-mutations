@@ -10,6 +10,7 @@ using Amazon.SQS;
 using Amazon.SQS.Model;
 using AssocationRegistry.KboMutations.Configuration;
 using AssocationRegistry.KboMutations.Messages;
+using AssociationRegistry.KboMutations.CloudEvents;
 using AssociationRegistry.KboMutations.MutationFileLambda.Csv;
 using AssociationRegistry.KboMutations.MutationFileLambda.FileProcessors;
 using AssociationRegistry.Notifications;
@@ -37,13 +38,18 @@ public class MutationFileLambdaTests
                 new TestLambdaLogger()),
             new AssociationRegistry.KboMutations.Telemetry.KboMutationsMetrics(new System.Diagnostics.Metrics.Meter("test")));
 
+        var cloudEventJson = CloudEventBuilder.MutationFileQueuedForProcessing()
+            .WithData(new TeVerwerkenMutatieBestandMessage("pub_mut_klanten-functies.csv"))
+            .FromFile("pub_mut_klanten-functies.csv")
+            .BuildAsJson();
+
         await messageProcessor.ProcessMessage(new SQSEvent()
         {
             Records = new List<SQSEvent.SQSMessage>()
             {
                 new SQSEvent.SQSMessage()
                 {
-                    Body = JsonConvert.SerializeObject(new TeVerwerkenMutatieBestandMessage("pub_mut_klanten-functies.csv"))
+                    Body = cloudEventJson
                 }
             }
         }, Mock.Of<ILambdaLogger>(), CancellationToken.None);
