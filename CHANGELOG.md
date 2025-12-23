@@ -1,3 +1,12 @@
+# [1.16.0](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.15.0...v1.16.0) (2025-12-23)
+
+
+### Features
+
+* or-2942 add more monitoring and metrics ([9fc87f1](https://github.com/informatievlaanderen/association-registry-kbo-mutations/commit/9fc87f12bef763168889a3561983fec2b5ae0a50))
+* or-2942 add opentelemetry ([fa583c7](https://github.com/informatievlaanderen/association-registry-kbo-mutations/commit/fa583c7ddac9ed0cc1eced1aaeb4daa4f6c28bf6))
+* or-2949 remove stopwatches ([ae4013c](https://github.com/informatievlaanderen/association-registry-kbo-mutations/commit/ae4013c57700769634e4d39be673c526f9b11c3b))
+
 # [1.15.0](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.14.1...v1.15.0) (2025-12-18)
 
 
