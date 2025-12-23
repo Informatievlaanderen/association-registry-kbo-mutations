@@ -22,6 +22,12 @@
         <PackageReference Include="Amazon.Lambda.SQSEvents" />
         <PackageReference Include="AWSSDK.Core" />
         <PackageReference Include="AWSSDK.DynamoDBv2" />
+        <PackageReference Include="OpenTelemetry" />
+        <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
+        <PackageReference Include="OpenTelemetry.Instrumentation.Runtime" />
+        <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" />
+        <PackageReference Include="OpenTelemetry.Exporter.Console" />
+        <PackageReference Include="OpenTelemetry.Instrumentation.Http" />
     </ItemGroup>
 
     <ItemGroup>
