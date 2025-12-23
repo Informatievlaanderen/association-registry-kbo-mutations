@@ -1,3 +1,4 @@
+using System.Diagnostics.Metrics;
 using System.Net;
 using System.Text.Json.Serialization;
 using Amazon.Lambda.Core;
@@ -15,6 +16,7 @@ using AssociationRegistry.KboMutations.MutationLambdaContainer.Configuration;
 using AssociationRegistry.KboMutations.MutationLambdaContainer.Ftps;
 using AssociationRegistry.KboMutations.MutationLambdaContainer.Logging;
 using AssociationRegistry.KboMutations.MutationLambdaContainer.Telemetry;
+using AssociationRegistry.KboMutations.Telemetry;
 using AssociationRegistry.Notifications;
 using Microsoft.Extensions.Configuration;
 
@@ -48,13 +50,14 @@ public static class Function
 
         var telemetryManager = new TelemetryManager(context.Logger, configurationRoot);
 
+        var paramNamesConfiguration = GetParamNamesConfiguration(configurationRoot);
+        var kboMutationsConfiguration = GetKboMutationsConfiguration(configurationRoot);
+        var kboSyncConfiguration = GetKboSyncConfiguration(configurationRoot);
+        var ssmClientWrapper = new SsmClientWrapper(new AmazonSimpleSystemsManagementClient());
+        var notifier = await new NotifierFactory(ssmClientWrapper, paramNamesConfiguration, context.Logger).TryCreate();
+
         try
         {
-            var paramNamesConfiguration = GetParamNamesConfiguration(configurationRoot);
-            var kboMutationsConfiguration = GetKboMutationsConfiguration(configurationRoot);
-            var kboSyncConfiguration = GetKboSyncConfiguration(configurationRoot);
-            var ssmClientWrapper = new SsmClientWrapper(new AmazonSimpleSystemsManagementClient());
-            var notifier = await new NotifierFactory(ssmClientWrapper, paramNamesConfiguration, context.Logger).TryCreate();
             var amazonSqsClient = new AmazonSQSClient();
 
             await NotifyMetrics(notifier, amazonSqsClient, kboSyncConfiguration);
@@ -95,6 +98,9 @@ public static class Function
         var amazonS3Client = new AmazonS3Client();
         await certProvider.WriteCertificatesToFileSystem(context.Logger, amazonS3Client);
 
+        var meter = new Meter(KboMutationsMetrics.MeterName);
+        var metrics = new KboMutationsMetrics(meter);
+
         var mutatieBestandProcessor = new MutatieFtpProcessor(
             context.Logger,
             new CurlFtpsClient(context.Logger, kboMutationsConfiguration),
@@ -102,7 +108,8 @@ public static class Function
             amazonSqsClient,
             kboMutationsConfiguration,
             kboSyncConfigurtion,
-            notifier);
+            notifier,
+            metrics);
 
         return mutatieBestandProcessor;
     }

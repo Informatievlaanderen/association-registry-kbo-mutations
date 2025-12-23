@@ -6,6 +6,7 @@ using AssocationRegistry.KboMutations.Configuration;
 using AssocationRegistry.KboMutations.Models;
 using AssociationRegistry.Kbo;
 using AssociationRegistry.KboMutations.MutationFileLambda.Csv;
+using AssociationRegistry.KboMutations.Telemetry;
 
 namespace AssociationRegistry.KboMutations.MutationFileLambda.FileProcessors;
 
@@ -26,14 +27,17 @@ public class FunctieMutatieBestandProcessor: IMutatieBestandProcessor
         _csvParser = csvParser;
         _contextLogger = contextLogger;
     }
-    
-    public bool CanHandle(string fileName) => 
+
+    public bool CanHandle(string fileName) =>
         fileName.StartsWith(_kboSyncConfiguration.FunctiesFileNamePrefix);
 
     public async Task<List<SendMessageResponse>> Handle(string filename, string content, CancellationToken cancellationToken)
     {
+        using var activity = KboMutationsActivitySource.StartParsing("functie", content.Length);
+
         var mutatielijnen = _csvParser.ParseMutatieLijnen<FunctieMutatieLijn>(content).ToArray();
 
+        activity?.SetTag("mutation.records_parsed", mutatielijnen.Length);
         _contextLogger.LogInformation($"Found {mutatielijnen.Length} mutatielijnen");
 
         var responses = new List<SendMessageResponse>();
@@ -47,7 +51,7 @@ public class FunctieMutatieBestandProcessor: IMutatieBestandProcessor
             responses.Add(await _sqsClient.SendMessageAsync(_kboSyncConfiguration.SyncQueueUrl,messageBody,
                 cancellationToken));
         }
-        
+
         return responses;
     }
 }

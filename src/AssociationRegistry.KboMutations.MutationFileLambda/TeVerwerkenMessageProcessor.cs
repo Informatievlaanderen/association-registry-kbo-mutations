@@ -1,3 +1,5 @@
+using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using System.Globalization;
 using System.Net;
 using System.Text.Json;
@@ -13,6 +15,7 @@ using AssocationRegistry.KboMutations.Notifications;
 using AssociationRegistry.Kbo;
 using AssociationRegistry.KboMutations.MutationFileLambda.FileProcessors;
 using AssociationRegistry.KboMutations.MutationFileLambda.Logging;
+using AssociationRegistry.KboMutations.Telemetry;
 using AssociationRegistry.Notifications;
 using CsvHelper;
 using CsvHelper.Configuration;
@@ -26,19 +29,22 @@ public class TeVerwerkenMessageProcessor
     private readonly IAmazonS3 _s3Client;
     private readonly IAmazonSQS _sqsClient;
     private readonly INotifier _notifier;
+    private readonly KboMutationsMetrics _metrics;
 
-    
+
     public TeVerwerkenMessageProcessor(IAmazonS3 s3Client,
         IAmazonSQS sqsClient,
         INotifier notifier,
         KboSyncConfiguration kboSyncConfiguration,
-        MutatieBestandProcessors mutatieBestandProcessors)
+        MutatieBestandProcessors mutatieBestandProcessors,
+        KboMutationsMetrics metrics)
     {
         _s3Client = s3Client;
         _sqsClient = sqsClient;
         _notifier = notifier;
         _kboSyncConfiguration = kboSyncConfiguration;
         _mutatieBestandProcessors = mutatieBestandProcessors;
+        _metrics = metrics;
     }
 
     public async Task ProcessMessage(SQSEvent sqsEvent,
@@ -84,28 +90,75 @@ public class TeVerwerkenMessageProcessor
         TeVerwerkenMutatieBestandMessage? message,
         CancellationToken cancellationToken)
     {
-        var fetchMutatieBestandResponse = await _s3Client.GetObjectAsync(
-            _kboSyncConfiguration.MutationFileBucketName,
-            message.Key,
-            cancellationToken);
+        var fileType = DetermineFileType(message.Key);
 
-        var content = await FetchMutationFileContent(fetchMutatieBestandResponse.ResponseStream, cancellationToken);
+        using var activity = KboMutationsActivitySource.StartFileProcessing(message.Key, fileType);
 
-        contextLogger.LogInformation($"MutatieBestand found");
-
-        var processor = _mutatieBestandProcessors.FindProcessorOrNull(message.Key);
-        
-        if (processor == null)
+        try
         {
-            contextLogger.LogCritical("Could not find mutatie bestand processor for message " + message.Key);
-            return [];
+            contextLogger.LogInformation($"Starting processing of mutation file: {message.Key} (type: {fileType})");
+
+            using (var s3Activity = KboMutationsActivitySource.StartS3Download(_kboSyncConfiguration.MutationFileBucketName, message.Key))
+            {
+                var fetchMutatieBestandResponse = await _s3Client.GetObjectAsync(
+                    _kboSyncConfiguration.MutationFileBucketName,
+                    message.Key,
+                    cancellationToken);
+
+                var content = await FetchMutationFileContent(fetchMutatieBestandResponse.ResponseStream, cancellationToken);
+                _metrics.RecordFileSize(fileType, content.Length);
+
+                contextLogger.LogInformation($"MutatieBestand found, size: {content.Length} characters");
+
+                var processor = _mutatieBestandProcessors.FindProcessorOrNull(message.Key);
+
+                if (processor == null)
+                {
+                    contextLogger.LogCritical("Could not find mutatie bestand processor for message " + message.Key);
+                    _metrics.RecordFileProcessed(fileType, success: false);
+                    return [];
+                }
+
+                using (var sqsActivity = KboMutationsActivitySource.StartSqsPublish(_kboSyncConfiguration.SyncQueueUrl, 0))
+                {
+                    var responses = await processor.Handle(message.Key, content, cancellationToken);
+                    sqsActivity?.SetTag("sqs.message.count", responses.Count);
+
+                    var successCount = responses.Count(r => r.HttpStatusCode == HttpStatusCode.OK);
+                    contextLogger.LogInformation($"Published {successCount} of {responses.Count} mutations to SQS");
+
+                    foreach (var response in responses.Where(r => r.HttpStatusCode == HttpStatusCode.OK))
+                    {
+                        _metrics.RecordMutationPublished(fileType);
+                    }
+
+                    await _s3Client.DeleteObjectAsync(_kboSyncConfiguration.MutationFileBucketName, message.Key, cancellationToken);
+
+                    _metrics.RecordFileProcessed(fileType, success: true);
+                    contextLogger.LogInformation($"Successfully processed file: {message.Key}");
+
+                    return responses;
+                }
+            }
         }
+        catch (Exception ex)
+        {
+            _metrics.RecordFileProcessed(fileType, success: false);
+            activity?.RecordException(ex);
+            contextLogger.LogError($"Error processing mutation file: {message.Key} - {ex.Message}");
+            throw;
+        }
+    }
 
-        var responses = await processor.Handle(message.Key, content, cancellationToken);
-
-        await _s3Client.DeleteObjectAsync(_kboSyncConfiguration.MutationFileBucketName, message.Key, cancellationToken);
-
-        return responses;
+    private static string DetermineFileType(string fileName)
+    {
+        if (fileName.Contains("onderneming", StringComparison.OrdinalIgnoreCase))
+            return "onderneming";
+        if (fileName.Contains("functie", StringComparison.OrdinalIgnoreCase))
+            return "functie";
+        if (fileName.Contains("persoon", StringComparison.OrdinalIgnoreCase))
+            return "persoon";
+        return "unknown";
     }
 
     private static async Task<string> FetchMutationFileContent(

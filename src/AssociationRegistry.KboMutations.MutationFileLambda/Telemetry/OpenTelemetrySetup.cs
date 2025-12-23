@@ -34,6 +34,7 @@ public class OpenTelemetrySetup : IDisposable
         var builder = Sdk.CreateMeterProviderBuilder()
                          .ConfigureResource(_resources.ConfigureResourceBuilder)
                          .AddMeter(MeterName)
+                         .AddMeter(AssociationRegistry.KboMutations.Telemetry.KboMutationsMetrics.MeterName)
                          .AddRuntimeInstrumentation()
                          .AddHttpClientInstrumentation();
 
@@ -66,6 +67,7 @@ public class OpenTelemetrySetup : IDisposable
     {
         var builder = Sdk.CreateTracerProviderBuilder()
                          .AddHttpClientInstrumentation()
+                         .AddSource(AssociationRegistry.KboMutations.Telemetry.KboMutationsActivitySource.Source.Name)
                          .ConfigureResource(_resources.ConfigureResourceBuilder);
 
         if (!string.IsNullOrEmpty(tracesUri))

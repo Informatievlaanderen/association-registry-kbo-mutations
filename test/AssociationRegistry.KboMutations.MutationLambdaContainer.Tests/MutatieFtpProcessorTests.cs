@@ -33,7 +33,8 @@ public class MutatieFtpProcessorTests
         var amazonSqs = new Mock<IAmazonSQS>();
 
         var sut = new MutatieFtpProcessor(Mock.Of<ILambdaLogger>(), ftpsClient.Object, amazonS3.Object,
-            amazonSqs.Object, new KboMutationsConfiguration(){SourcePath = "test", Host = "host", Port = 123, CachePath = "cache"}, new KboSyncConfiguration(), Mock.Of<INotifier>());
+            amazonSqs.Object, new KboMutationsConfiguration(){SourcePath = "test", Host = "host", Port = 123, CachePath = "cache"}, new KboSyncConfiguration(), Mock.Of<INotifier>(),
+            new AssociationRegistry.KboMutations.Telemetry.KboMutationsMetrics(new System.Diagnostics.Metrics.Meter("test")));
         await sut.ProcessAsync();
         
         amazonS3.Verify(x => x.PutObjectAsync(It.IsAny<PutObjectRequest>(), It.IsAny<CancellationToken>()), Times.Exactly(6));
