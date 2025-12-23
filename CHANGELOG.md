@@ -1,3 +1,10 @@
+## [1.16.4](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.16.3...v1.16.4) (2025-12-23)
+
+
+### Bug Fixes
+
+* or-2942 add timing metrics ([1505797](https://github.com/informatievlaanderen/association-registry-kbo-mutations/commit/1505797c83764796cbf5bee62b3133449268ca5f))
+
 ## [1.16.3](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.16.2...v1.16.3) (2025-12-23)
 
 
