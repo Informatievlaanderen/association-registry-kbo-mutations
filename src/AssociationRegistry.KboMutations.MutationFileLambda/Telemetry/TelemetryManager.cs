@@ -48,8 +48,8 @@ public class TelemetryManager : IDisposable
 
         try
         {
-            var remainingTime = context.RemainingTime.Subtract(5.Seconds());
-            var maxFlushTime = TimeSpan.FromMilliseconds(Math.Min(remainingTime.TotalMilliseconds, 5.Seconds().Milliseconds));
+            var remainingTime = context.RemainingTime.Subtract(2.Seconds());
+            var maxFlushTime = TimeSpan.FromMilliseconds(Math.Min(remainingTime.TotalMilliseconds, 2.Seconds().TotalMilliseconds));
 
             _logger.LogInformation($"Flushing OpenTelemetry data with timeout: {maxFlushTime.TotalMilliseconds}ms");
 
