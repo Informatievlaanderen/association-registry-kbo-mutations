@@ -13,6 +13,7 @@ using AssocationRegistry.KboMutations.Notifications;
 using AssociationRegistry.KboMutations.MutationFileLambda.Configuration;
 using AssociationRegistry.KboMutations.MutationFileLambda.Csv;
 using AssociationRegistry.KboMutations.MutationFileLambda.FileProcessors;
+using AssociationRegistry.KboMutations.MutationFileLambda.Telemetry;
 using Microsoft.Extensions.Configuration;
 
 namespace AssociationRegistry.KboMutations.MutationFileLambda;
@@ -45,28 +46,44 @@ public class Function
             .AddJsonFile("appsettings.json", true, true)
             .AddEnvironmentVariables()
             .Build();
-        
-        var amazonKboSyncConfiguration = GetKboSyncConfiguration(configurationRoot);
-        var ssmClientWrapper = new SsmClientWrapper(new AmazonSimpleSystemsManagementClient());
-        var paramNamesConfiguration = GetParamNamesConfiguration(configurationRoot);
-        var notifier = await new NotifierFactory(
-            ssmClientWrapper, 
-            paramNamesConfiguration, 
-            context.Logger).TryCreate();
-        var s3Client = new AmazonS3Client();
-        var sqsClient = new AmazonSQSClient();
 
-        _processor = new TeVerwerkenMessageProcessor(s3Client,
-            sqsClient,
-            notifier,
-            amazonKboSyncConfiguration,
-            MutatieBestandProcessors.CreateDefault(amazonKboSyncConfiguration,
+        var telemetryManager = new TelemetryManager(context.Logger, configurationRoot);
+
+        try
+        {
+            var amazonKboSyncConfiguration = GetKboSyncConfiguration(configurationRoot);
+            var ssmClientWrapper = new SsmClientWrapper(new AmazonSimpleSystemsManagementClient());
+            var paramNamesConfiguration = GetParamNamesConfiguration(configurationRoot);
+            var notifier = await new NotifierFactory(
+                ssmClientWrapper,
+                paramNamesConfiguration,
+                context.Logger).TryCreate();
+            var s3Client = new AmazonS3Client();
+            var sqsClient = new AmazonSQSClient();
+
+            _processor = new TeVerwerkenMessageProcessor(s3Client,
                 sqsClient,
-                context.Logger));
+                notifier,
+                amazonKboSyncConfiguration,
+                MutatieBestandProcessors.CreateDefault(amazonKboSyncConfiguration,
+                    sqsClient,
+                    context.Logger));
 
-        context.Logger.LogInformation($"KBO mutation file lambda gestart. Aantal berichten te verwerken: {@event.Records.Count}");
-        await _processor.ProcessMessage(@event, context.Logger, CancellationToken.None);
-        context.Logger.LogInformation($"KBO mutation file lambda voltooid.");
+            context.Logger.LogInformation($"KBO mutation file lambda gestart. Aantal berichten te verwerken: {@event.Records.Count}");
+            await _processor.ProcessMessage(@event, context.Logger, CancellationToken.None);
+            context.Logger.LogInformation($"KBO mutation file lambda voltooid.");
+        }
+        catch (Exception e)
+        {
+            context.Logger.LogLine($"Error: {e.Message}");
+            await telemetryManager.FlushAsync(context);
+            throw;
+        }
+        finally
+        {
+            context.Logger.LogInformation("Kbo mutation file lambda finished");
+            await telemetryManager.FlushAsync(context);
+        }
     }
 
     private static ISlackConfiguration GetParamNamesConfiguration(IConfigurationRoot configurationRoot)

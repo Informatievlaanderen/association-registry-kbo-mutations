@@ -14,6 +14,7 @@ using AssociationRegistry.KboMutations.MutationLambdaContainer.Certificates;
 using AssociationRegistry.KboMutations.MutationLambdaContainer.Configuration;
 using AssociationRegistry.KboMutations.MutationLambdaContainer.Ftps;
 using AssociationRegistry.KboMutations.MutationLambdaContainer.Logging;
+using AssociationRegistry.KboMutations.MutationLambdaContainer.Telemetry;
 using AssociationRegistry.Notifications;
 using Microsoft.Extensions.Configuration;
 
@@ -45,17 +46,19 @@ public static class Function
             .AddEnvironmentVariables()
             .Build();
 
-        var paramNamesConfiguration = GetParamNamesConfiguration(configurationRoot);
-        var kboMutationsConfiguration = GetKboMutationsConfiguration(configurationRoot);
-        var kboSyncConfiguration = GetKboSyncConfiguration(configurationRoot);
-        var ssmClientWrapper = new SsmClientWrapper(new AmazonSimpleSystemsManagementClient());
-        var notifier = await new NotifierFactory(ssmClientWrapper, paramNamesConfiguration, context.Logger).TryCreate();
-        var amazonSqsClient = new AmazonSQSClient();
-
-        await NotifyMetrics(notifier, amazonSqsClient, kboSyncConfiguration);
+        var telemetryManager = new TelemetryManager(context.Logger, configurationRoot);
 
         try
         {
+            var paramNamesConfiguration = GetParamNamesConfiguration(configurationRoot);
+            var kboMutationsConfiguration = GetKboMutationsConfiguration(configurationRoot);
+            var kboSyncConfiguration = GetKboSyncConfiguration(configurationRoot);
+            var ssmClientWrapper = new SsmClientWrapper(new AmazonSimpleSystemsManagementClient());
+            var notifier = await new NotifierFactory(ssmClientWrapper, paramNamesConfiguration, context.Logger).TryCreate();
+            var amazonSqsClient = new AmazonSQSClient();
+
+            await NotifyMetrics(notifier, amazonSqsClient, kboSyncConfiguration);
+
             await notifier.Notify(new KboMutationLambdaGestart());
             var mutatieBestandProcessor = await SetUpFunction(
                 context,
@@ -70,7 +73,13 @@ public static class Function
         catch (Exception ex)
         {
             await notifier.Notify(new KboMutationLambdaGefaald(ex));
+            await telemetryManager.FlushAsync(context);
             throw;
+        }
+        finally
+        {
+            context.Logger.LogInformation("Kbo mutation lambda finished");
+            await telemetryManager.FlushAsync(context);
         }
     }
 

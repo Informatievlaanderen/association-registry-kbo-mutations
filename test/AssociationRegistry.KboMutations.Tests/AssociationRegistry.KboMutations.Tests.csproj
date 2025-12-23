@@ -13,9 +13,13 @@
         <PackageReference Include="AutoBogus"/>
         <PackageReference Include="AutoFixture" />
         <PackageReference Include="FluentAssertions"/>
+        <PackageReference Include="Microsoft.Extensions.Configuration" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.Binder" />
+        <PackageReference Include="Microsoft.Extensions.Configuration.Json" />
         <PackageReference Include="Microsoft.NET.Test.Sdk"/>
         <PackageReference Include="Be.Vlaanderen.Basisregisters.AssociationRegistry"/>
         <PackageReference Include="Moq" />
+        <PackageReference Include="System.Diagnostics.DiagnosticSource" />
         <PackageReference Include="xunit"/>
         <PackageReference Include="xunit.runner.visualstudio"/>
     </ItemGroup>
