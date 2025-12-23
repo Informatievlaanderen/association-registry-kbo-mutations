@@ -44,6 +44,12 @@ public class Function
     /// <returns></returns>
     public static async Task FunctionHandler(SQSEvent @event, ILambdaContext context)
     {
+        var meter = new Meter(KboMutationsMetrics.MeterName);
+        var metrics = new KboMutationsMetrics(meter);
+
+        var coldStart = string.IsNullOrEmpty(Environment.GetEnvironmentVariable("AWS_EXECUTION_ENV"));
+        metrics.RecordLambdaInvocation("kbo_mutation_file", coldStart);
+
         var configurationRoot = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("appsettings.json", true, true)
@@ -69,10 +75,7 @@ public class Function
                 context.Logger).TryCreate();
             var s3Client = new AmazonS3Client();
             var sqsClient = new AmazonSQSClient();
-
-            var meter = new Meter(KboMutationsMetrics.MeterName);
-            var metrics = new KboMutationsMetrics(meter);
-
+            
             _processor = new TeVerwerkenMessageProcessor(s3Client,
                 sqsClient,
                 notifier,

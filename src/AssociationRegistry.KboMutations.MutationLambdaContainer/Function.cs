@@ -43,6 +43,12 @@ public static class Function
 
     public static async Task SharedFunctionHandler(ILambdaContext context)
     {
+        var meter = new Meter(KboMutationsMetrics.MeterName);
+        var metrics = new KboMutationsMetrics(meter);
+        
+        var coldStart = string.IsNullOrEmpty(Environment.GetEnvironmentVariable("AWS_EXECUTION_ENV"));
+        metrics.RecordLambdaInvocation("kbo_mutations", coldStart);
+        
         var configurationRoot = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("appsettings.json", true, true)
@@ -75,7 +81,8 @@ public static class Function
                 amazonSqsClient,
                 kboMutationsConfiguration,
                 kboSyncConfiguration,
-                notifier);
+                notifier,
+                metrics);
 
             await mutatieBestandProcessor.ProcessAsync();
             await notifier.Notify(new KboMutationLambdaVoltooid());
@@ -93,20 +100,17 @@ public static class Function
         }
     }
 
-    private static async Task<MutatieFtpProcessor> SetUpFunction(
-        ILambdaContext context,
+    private static async Task<MutatieFtpProcessor> SetUpFunction(ILambdaContext context,
         IAmazonSQS amazonSqsClient,
         KboMutationsConfiguration kboMutationsConfiguration,
         KboSyncConfiguration kboSyncConfigurtion,
-        INotifier notifier)
+        INotifier notifier, 
+        KboMutationsMetrics metrics)
     {
         var certProvider = new CertificatesProvider(kboMutationsConfiguration);
 
         var amazonS3Client = new AmazonS3Client();
         await certProvider.WriteCertificatesToFileSystem(context.Logger, amazonS3Client);
-
-        var meter = new Meter(KboMutationsMetrics.MeterName);
-        var metrics = new KboMutationsMetrics(meter);
 
         var mutatieBestandProcessor = new MutatieFtpProcessor(
             context.Logger,

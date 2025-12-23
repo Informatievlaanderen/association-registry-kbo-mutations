@@ -13,6 +13,7 @@ public class KboMutationsMetrics
     private readonly Counter<long> _recordsSkipped;
     private readonly Histogram<double> _fileProcessingDuration;
     private readonly Histogram<long> _fileSizeBytes;
+    private readonly Counter<long> _lambdaInvocations;
     private readonly string _environment;
 
     public KboMutationsMetrics(Meter meter)
@@ -44,6 +45,10 @@ public class KboMutationsMetrics
             "kbo_mutations_file_size_bytes",
             unit: "bytes",
             description: "Size of processed files");
+
+        _lambdaInvocations = meter.CreateCounter<long>(
+            "kbo_mutations_lambda_invocations_total",
+            description: "Number of lambda invocations");
     }
 
     public void RecordFileProcessed(string fileType, bool success)
@@ -96,5 +101,16 @@ public class KboMutationsMetrics
             { "environment", _environment }
         };
         _fileSizeBytes.Record(sizeBytes, tags);
+    }
+
+    public void RecordLambdaInvocation(string lambdaName, bool coldStart)
+    {
+        var tags = new TagList
+        {
+            { "lambda.name", lambdaName },
+            { "cold_start", coldStart },
+            { "environment", _environment }
+        };
+        _lambdaInvocations.Add(1, tags);
     }
 }
