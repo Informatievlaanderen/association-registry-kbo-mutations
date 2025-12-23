@@ -17,8 +17,6 @@ public class CsvMutatieBestandParser : ICsvMutatieBestandParser
 
     public IEnumerable<T> ParseMutatieLijnen<T>(string content)
     {
-        var stopwatch = Stopwatch.StartNew();
-
         var config = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
             HasHeaderRecord = false,
@@ -31,7 +29,6 @@ public class CsvMutatieBestandParser : ICsvMutatieBestandParser
 
         var records = csv.GetRecords<T>().ToList();
 
-        stopwatch.Stop();
         _metrics?.RecordRecordsParsed("csv", records.Count);
 
         return records;

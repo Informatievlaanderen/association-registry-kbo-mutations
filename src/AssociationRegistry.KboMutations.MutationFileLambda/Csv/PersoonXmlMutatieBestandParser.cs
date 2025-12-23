@@ -17,9 +17,7 @@ public class PersoonXmlMutatieBestandParser : IPersoonXmlMutatieBestandParser
 
     public IEnumerable<PersoonMutatieLijn> ParseMutatieLijnen(string xmlContent)
     {
-        var stopwatch = Stopwatch.StartNew();
         var parsedCount = 0;
-        var skippedCount = 0;
 
         var document = XDocument.Parse(xmlContent);
         var navigator = document.CreateNavigator();
@@ -31,14 +29,12 @@ public class PersoonXmlMutatieBestandParser : IPersoonXmlMutatieBestandParser
             var persoonNode = persoonNodes.Current;
             if (persoonNode == null)
             {
-                skippedCount++;
                 continue;
             }
 
             var inszNode = persoonNode.SelectSingleNode("INSZ");
             if (inszNode == null || string.IsNullOrWhiteSpace(inszNode.Value))
             {
-                skippedCount++;
                 _metrics?.RecordRecordsSkipped("persoon", 1, "missing_insz");
                 continue;
             }
@@ -55,7 +51,6 @@ public class PersoonXmlMutatieBestandParser : IPersoonXmlMutatieBestandParser
             };
         }
 
-        stopwatch.Stop();
         _metrics?.RecordRecordsParsed("persoon", parsedCount);
     }
 }

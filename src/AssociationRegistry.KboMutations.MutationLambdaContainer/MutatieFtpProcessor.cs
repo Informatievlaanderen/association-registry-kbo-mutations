@@ -59,7 +59,6 @@ public class MutatieFtpProcessor
 
     private async Task ProcessBestandAsync(MagdaMutatieBestand magdaMutatieBestand, CancellationToken cancellationToken)
     {
-        var stopwatch = Stopwatch.StartNew();
         var fileType = DetermineFileType(magdaMutatieBestand.Name);
 
         using var activity = KboMutationsActivitySource.StartFileProcessing(magdaMutatieBestand.Name, fileType);
@@ -109,13 +108,11 @@ public class MutatieFtpProcessor
             // Archive file from MAGDA
             ArchiveerMagdaMutatieBestand(magdaMutatieBestand);
 
-            stopwatch.Stop();
             _metrics.RecordFileProcessed(fileType, success: true);
-            _logger.LogInformation($"Successfully processed file: {magdaMutatieBestand.Name} in {stopwatch.ElapsedMilliseconds}ms");
+            _logger.LogInformation($"Successfully processed file: {magdaMutatieBestand.Name}");
         }
         catch (Exception ex)
         {
-            stopwatch.Stop();
             _metrics.RecordFileProcessed(fileType, success: false);
             activity?.RecordException(ex);
             _logger.LogError($"KBO mutation lambda kon een bestand niet verwerken. Bestandsnaam: '{magdaMutatieBestand.Name}' ({ex.Message})");
