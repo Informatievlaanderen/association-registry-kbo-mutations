@@ -1,4 +1,6 @@
-﻿using System.Text.Json;
+﻿using System.Diagnostics;
+using System.Diagnostics.Metrics;
+using System.Text.Json;
 using Amazon.Lambda.Core;
 using Amazon.S3;
 using Amazon.S3.Model;
@@ -13,6 +15,7 @@ using AssociationRegistry.KboMutations.MutationLambdaContainer.Abstractions;
 using AssociationRegistry.KboMutations.MutationLambdaContainer.Configuration;
 using AssociationRegistry.KboMutations.MutationLambdaContainer.Ftps;
 using AssociationRegistry.KboMutations.MutationLambdaContainer.Logging;
+using AssociationRegistry.KboMutations.Telemetry;
 using AssociationRegistry.Notifications;
 
 namespace AssociationRegistry.KboMutations.MutationLambdaContainer;
@@ -27,10 +30,11 @@ public class MutatieFtpProcessor
     private readonly INotifier _notifier;
     private readonly IAmazonS3 _s3Client;
     private readonly IAmazonSQS _sqsClient;
+    private readonly KboMutationsMetrics _metrics;
 
     public MutatieFtpProcessor(ILambdaLogger logger, IFtpsClient ftpsClient, IAmazonS3 s3Client,
         IAmazonSQS sqsClient, KboMutationsConfiguration kboMutationsConfiguration,
-        KboSyncConfiguration kboSyncConfiguration, INotifier notifier)
+        KboSyncConfiguration kboSyncConfiguration, INotifier notifier, KboMutationsMetrics metrics)
     {
         _logger = logger;
         _ftpsClient = ftpsClient;
@@ -39,6 +43,7 @@ public class MutatieFtpProcessor
         _kboMutationsConfiguration = kboMutationsConfiguration;
         _kboSyncConfiguration = kboSyncConfiguration;
         _notifier = notifier;
+        _metrics = metrics;
 
         _baseUriBuilder = new FtpUriBuilder(_kboMutationsConfiguration.Host, _kboMutationsConfiguration.Port);
     }
@@ -54,8 +59,15 @@ public class MutatieFtpProcessor
 
     private async Task ProcessBestandAsync(MagdaMutatieBestand magdaMutatieBestand, CancellationToken cancellationToken)
     {
+        var stopwatch = Stopwatch.StartNew();
+        var fileType = DetermineFileType(magdaMutatieBestand.Name);
+
+        using var activity = KboMutationsActivitySource.StartFileProcessing(magdaMutatieBestand.Name, fileType);
+
         try
         {
+            _logger.LogInformation($"Starting processing of file: {magdaMutatieBestand.Name} (type: {fileType})");
+
             using var stream = new MemoryStream();
 
             // Download file from MAGDA
@@ -63,9 +75,18 @@ public class MutatieFtpProcessor
             var fileName = Path.GetFileName(fullNameUri);
             var localDestinationFilePath = Path.Join(_kboMutationsConfiguration.DownloadPath, fileName);
 
-            if (!_ftpsClient.Download(stream, fullNameUri, localDestinationFilePath)) throw new ApplicationException($"Bestand {magdaMutatieBestand.Name} kon niet opgehaald worden");
+            using (var ftpActivity = KboMutationsActivitySource.StartFtpDownload(_kboMutationsConfiguration.Host, magdaMutatieBestand.FtpPath))
+            {
+                if (!_ftpsClient.Download(stream, fullNameUri, localDestinationFilePath))
+                {
+                    ftpActivity?.RecordException(new ApplicationException($"Bestand {magdaMutatieBestand.Name} kon niet opgehaald worden"));
+                    throw new ApplicationException($"Bestand {magdaMutatieBestand.Name} kon niet opgehaald worden");
+                }
+                _logger.LogInformation($"Downloaded file from FTP: {magdaMutatieBestand.Name}, size: {stream.Length} bytes");
+            }
 
             stream.Seek(0, SeekOrigin.Begin);
+            _metrics.RecordFileSize(fileType, stream.Length);
 
             // Save file on S3
             await _s3Client.PutObjectAsync(new PutObjectRequest
@@ -87,12 +108,30 @@ public class MutatieFtpProcessor
 
             // Archive file from MAGDA
             ArchiveerMagdaMutatieBestand(magdaMutatieBestand);
+
+            stopwatch.Stop();
+            _metrics.RecordFileProcessed(fileType, success: true);
+            _logger.LogInformation($"Successfully processed file: {magdaMutatieBestand.Name} in {stopwatch.ElapsedMilliseconds}ms");
         }
         catch (Exception ex)
         {
+            stopwatch.Stop();
+            _metrics.RecordFileProcessed(fileType, success: false);
+            activity?.RecordException(ex);
             _logger.LogError($"KBO mutation lambda kon een bestand niet verwerken. Bestandsnaam: '{magdaMutatieBestand.Name}' ({ex.Message})");
             throw;
         }
+    }
+
+    private static string DetermineFileType(string fileName)
+    {
+        if (fileName.Contains("onderneming", StringComparison.OrdinalIgnoreCase))
+            return "onderneming";
+        if (fileName.Contains("functie", StringComparison.OrdinalIgnoreCase))
+            return "functie";
+        if (fileName.Contains("persoon", StringComparison.OrdinalIgnoreCase))
+            return "persoon";
+        return "unknown";
     }
 
     private IEnumerable<MagdaMutatieBestand> GetMagdaMutatieBestanden()

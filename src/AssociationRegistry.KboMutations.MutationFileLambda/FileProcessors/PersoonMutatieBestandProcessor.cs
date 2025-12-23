@@ -8,6 +8,7 @@ using AssocationRegistry.KboMutations.Models;
 using AssociationRegistry.Kbo;
 using AssociationRegistry.KboMutations.Messages;
 using AssociationRegistry.KboMutations.MutationFileLambda.Csv;
+using AssociationRegistry.KboMutations.Telemetry;
 using CsvHelper;
 using CsvHelper.Configuration;
 
@@ -30,14 +31,17 @@ public class PersoonMutatieBestandProcessor: IMutatieBestandProcessor
         _xmlParser = xmlParser;
         _contextLogger = contextLogger;
     }
-    
-    public bool CanHandle(string fileName) => 
+
+    public bool CanHandle(string fileName) =>
         fileName.StartsWith(_kboSyncConfiguration.PersonenFileNamePrefix);
 
     public async Task<List<SendMessageResponse>> Handle(string filename, string content, CancellationToken cancellationToken)
     {
+        using var activity = KboMutationsActivitySource.StartParsing("persoon", content.Length);
+
         var mutatielijnen = _xmlParser.ParseMutatieLijnen(content).ToArray();
 
+        activity?.SetTag("mutation.records_parsed", mutatielijnen.Length);
         _contextLogger.LogInformation($"Found {mutatielijnen.Length} mutatielijnen");
 
         var responses = new List<SendMessageResponse>();
@@ -51,7 +55,7 @@ public class PersoonMutatieBestandProcessor: IMutatieBestandProcessor
             responses.Add(await _sqsClient.SendMessageAsync(_kboSyncConfiguration.SyncQueueUrl, messageBody,
                 cancellationToken));
         }
-        
+
         return responses;
     }
 }

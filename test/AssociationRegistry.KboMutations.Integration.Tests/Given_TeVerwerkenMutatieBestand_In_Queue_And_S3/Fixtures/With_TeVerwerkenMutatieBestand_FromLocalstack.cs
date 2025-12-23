@@ -95,10 +95,13 @@ public class With_TeVerwerkenMutatieBestand_FromLocalstack : WithLocalstackFixtu
 
         SecureFtpClient = new CurlFtpsClient(logger, kboMutationsConfiguration);
 
+        var metrics = new AssociationRegistry.KboMutations.Telemetry.KboMutationsMetrics(new System.Diagnostics.Metrics.Meter("integration-test"));
+
         FtpProcessor = new MutatieFtpProcessor(logger, SecureFtpClient, AmazonS3Client,
             AmazonSqsClient, kboMutationsConfiguration,
             KboSyncConfiguration,
-            new NullNotifier(new TestLambdaLogger()));
+            new NullNotifier(new TestLambdaLogger()),
+            metrics);
 
         TeVerwerkenMessageProcessor = new TeVerwerkenMessageProcessor(AmazonS3Client,
             AmazonSqsClient,
@@ -106,7 +109,8 @@ public class With_TeVerwerkenMutatieBestand_FromLocalstack : WithLocalstackFixtu
             KboSyncConfiguration,
             MutatieBestandProcessors.CreateDefault(KboSyncConfiguration,
                 AmazonSqsClient,
-                logger));
+                logger),
+            metrics);
     }
 
     public static DocumentStore CreateDocumentStore()

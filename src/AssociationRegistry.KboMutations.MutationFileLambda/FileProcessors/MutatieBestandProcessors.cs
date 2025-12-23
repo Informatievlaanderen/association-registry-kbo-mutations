@@ -3,6 +3,7 @@ using Amazon.Lambda.Core;
 using Amazon.SQS;
 using AssocationRegistry.KboMutations.Configuration;
 using AssociationRegistry.KboMutations.MutationFileLambda.Csv;
+using AssociationRegistry.KboMutations.Telemetry;
 
 namespace AssociationRegistry.KboMutations.MutationFileLambda.FileProcessors;
 
@@ -14,10 +15,11 @@ public class MutatieBestandProcessors: ReadOnlyCollection<IMutatieBestandProcess
 
     public static MutatieBestandProcessors CreateDefault(KboSyncConfiguration kboSyncConfiguration,
         IAmazonSQS sqsClient,
-        ILambdaLogger contextLogger)
+        ILambdaLogger contextLogger,
+        KboMutationsMetrics? metrics = null)
     {
-        var csvParser = new CsvMutatieBestandParser();
-        var xmlParser = new PersoonXmlMutatieBestandParser();
+        var csvParser = new CsvMutatieBestandParser(metrics);
+        var xmlParser = new PersoonXmlMutatieBestandParser(metrics);
 
         return new([
             new OndernemingMutatieBestandProcessor(kboSyncConfiguration, sqsClient, csvParser, contextLogger),
