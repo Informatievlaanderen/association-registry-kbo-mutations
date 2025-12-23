@@ -1,3 +1,10 @@
+## [1.16.2](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.16.1...v1.16.2) (2025-12-23)
+
+
+### Bug Fixes
+
+* or-2942 use tag list ([ec4bcc1](https://github.com/informatievlaanderen/association-registry-kbo-mutations/commit/ec4bcc189bbca07c9a48e09898b85b40c654a6f3))
+
 ## [1.16.1](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.16.0...v1.16.1) (2025-12-23)
 
 
