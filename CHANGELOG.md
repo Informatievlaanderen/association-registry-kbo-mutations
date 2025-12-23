@@ -1,3 +1,10 @@
+## [1.16.3](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.16.2...v1.16.3) (2025-12-23)
+
+
+### Bug Fixes
+
+* or-2942 use context logger; add env to metrics ([c763ccb](https://github.com/informatievlaanderen/association-registry-kbo-mutations/commit/c763ccb7bf081f2e8c62caa7fcf23bc5147e74e7))
+
 ## [1.16.2](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.16.1...v1.16.2) (2025-12-23)
 
 
