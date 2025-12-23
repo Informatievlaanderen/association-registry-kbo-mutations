@@ -14,6 +14,7 @@ using AssocationRegistry.KboMutations.Notifications;
 using AssociationRegistry.KboMutations.MutationLambdaContainer.Abstractions;
 using AssociationRegistry.KboMutations.MutationLambdaContainer.Configuration;
 using AssociationRegistry.KboMutations.MutationLambdaContainer.Ftps;
+using AssociationRegistry.KboMutations.CloudEvents;
 using AssociationRegistry.KboMutations.MutationLambdaContainer.Logging;
 using AssociationRegistry.KboMutations.Telemetry;
 using AssociationRegistry.Notifications;
@@ -96,11 +97,15 @@ public class MutatieFtpProcessor
             }, cancellationToken);
             _logger.LogInformation($"S3:PutObject for filename '{magdaMutatieBestand.Name}'");
 
-            // Notify about file on SQS
+            // Notify about file on SQS using CloudEvents with distributed tracing
+            var cloudEventJson = CloudEventBuilder.MutationFileQueuedForProcessing()
+                .WithData(new TeVerwerkenMutatieBestandMessage(magdaMutatieBestand.Name))
+                .FromFile(magdaMutatieBestand.Name)
+                .BuildAsJson();
+
             await _sqsClient.SendMessageAsync(new SendMessageRequest(
                 _kboSyncConfiguration.MutationFileQueueUrl,
-                JsonSerializer.Serialize(new TeVerwerkenMutatieBestandMessage(magdaMutatieBestand.Name))
-            )
+                cloudEventJson)
             {
                 MessageGroupId = Guid.NewGuid().ToString()
             }, cancellationToken);

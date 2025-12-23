@@ -12,6 +12,8 @@
         <PackageReference Include="Amazon.Lambda.Serialization.SystemTextJson"/>
         <PackageReference Include="AWSSDK.SimpleSystemsManagement" />
         <PackageReference Include="Be.Vlaanderen.Basisregisters.AssociationRegistry" />
+        <PackageReference Include="CloudNative.CloudEvents" />
+        <PackageReference Include="CloudNative.CloudEvents.SystemTextJson" />
         <PackageReference Include="CsvHelper"/>
         <PackageReference Include="AWSSDK.S3"/>
         <PackageReference Include="AWSSDK.SQS"/>

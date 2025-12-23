@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text.Json;
 using Amazon.Lambda.Core;
 using Amazon.SQS;
@@ -5,6 +6,7 @@ using Amazon.SQS.Model;
 using AssocationRegistry.KboMutations.Configuration;
 using AssocationRegistry.KboMutations.Models;
 using AssociationRegistry.Kbo;
+using AssociationRegistry.KboMutations.CloudEvents;
 using AssociationRegistry.KboMutations.MutationFileLambda.Csv;
 using AssociationRegistry.KboMutations.Telemetry;
 
@@ -45,10 +47,13 @@ public class FunctieMutatieBestandProcessor: IMutatieBestandProcessor
         {
             _contextLogger.LogInformation($"Sending {mutatielijn.Ondernemingsnummer} to synchronize queue");
 
-            var messageBody = JsonSerializer.Serialize(
-                new TeSynchroniserenKboNummerMessage(mutatielijn.Ondernemingsnummer));
+            // Create CloudEvent with trace context
+            var cloudEventJson = CloudEventBuilder.KboSyncFunctionQueued()
+                .WithData(new TeSynchroniserenKboNummerMessage(mutatielijn.Ondernemingsnummer))
+                .FromFile(Activity.Current?.GetTagItem("source.file.name")?.ToString())
+                .BuildAsJson();
 
-            responses.Add(await _sqsClient.SendMessageAsync(_kboSyncConfiguration.SyncQueueUrl,messageBody,
+            responses.Add(await _sqsClient.SendMessageAsync(_kboSyncConfiguration.SyncQueueUrl, cloudEventJson,
                 cancellationToken));
         }
 
