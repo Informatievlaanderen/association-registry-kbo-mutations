@@ -17,6 +17,7 @@ using AssociationRegistry.KboMutations.MutationFileLambda.FileProcessors;
 using AssociationRegistry.KboMutations.MutationFileLambda.Telemetry;
 using AssociationRegistry.KboMutations.Telemetry;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace AssociationRegistry.KboMutations.MutationFileLambda;
 
@@ -50,6 +51,12 @@ public class Function
             .Build();
 
         var telemetryManager = new TelemetryManager(context.Logger, configurationRoot);
+
+        using var loggerFactory = LoggerFactory.Create(builder =>
+        {
+            builder.AddProvider(new LambdaLoggerProvider(context.Logger));
+            telemetryManager.ConfigureLogging(builder);
+        });
 
         try
         {

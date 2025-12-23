@@ -13,32 +13,35 @@ public class KboMutationsMetrics
     private readonly Counter<long> _recordsSkipped;
     private readonly Histogram<double> _fileProcessingDuration;
     private readonly Histogram<long> _fileSizeBytes;
+    private readonly string _environment;
 
     public KboMutationsMetrics(Meter meter)
     {
+        _environment = Environment.GetEnvironmentVariable("ENVIRONMENT")?.ToLowerInvariant() ?? "unknown";
+
         _filesProcessed = meter.CreateCounter<long>(
-            "kbo.files.processed",
+            "kbo_mutations_files_processed_total",
             description: "Number of mutation files processed");
 
         _mutationsPublished = meter.CreateCounter<long>(
-            "kbo.mutations.published",
+            "kbo_mutations_published_total",
             description: "Number of mutations published to SQS");
 
         _recordsParsed = meter.CreateCounter<long>(
-            "kbo.records.parsed",
+            "kbo_mutations_records_parsed_total",
             description: "Number of records parsed from files");
 
         _recordsSkipped = meter.CreateCounter<long>(
-            "kbo.records.skipped",
+            "kbo_mutations_records_skipped_total",
             description: "Number of records skipped during parsing");
 
         _fileProcessingDuration = meter.CreateHistogram<double>(
-            "kbo.file.processing.duration",
+            "kbo_mutations_file_processing_duration_ms",
             unit: "ms",
             description: "Duration of file processing");
 
         _fileSizeBytes = meter.CreateHistogram<long>(
-            "kbo.file.size.bytes",
+            "kbo_mutations_file_size_bytes",
             unit: "bytes",
             description: "Size of processed files");
     }
@@ -48,7 +51,8 @@ public class KboMutationsMetrics
         var tags = new TagList
         {
             { "file.type", fileType },
-            { "success", success }
+            { "success", success },
+            { "environment", _environment }
         };
         _filesProcessed.Add(1, tags);
     }
@@ -57,7 +61,8 @@ public class KboMutationsMetrics
     {
         var tags = new TagList
         {
-            { "mutation.type", mutationType }
+            { "mutation.type", mutationType },
+            { "environment", _environment }
         };
         _mutationsPublished.Add(1, tags);
     }
@@ -66,7 +71,8 @@ public class KboMutationsMetrics
     {
         var tags = new TagList
         {
-            { "file.type", fileType }
+            { "file.type", fileType },
+            { "environment", _environment }
         };
         _recordsParsed.Add(count, tags);
     }
@@ -76,7 +82,8 @@ public class KboMutationsMetrics
         var tags = new TagList
         {
             { "file.type", fileType },
-            { "reason", reason }
+            { "reason", reason },
+            { "environment", _environment }
         };
         _recordsSkipped.Add(count, tags);
     }
@@ -85,7 +92,8 @@ public class KboMutationsMetrics
     {
         var tags = new TagList
         {
-            { "file.type", fileType }
+            { "file.type", fileType },
+            { "environment", _environment }
         };
         _fileSizeBytes.Record(sizeBytes, tags);
     }

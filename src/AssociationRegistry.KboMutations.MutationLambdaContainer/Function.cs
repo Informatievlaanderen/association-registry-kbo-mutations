@@ -19,6 +19,7 @@ using AssociationRegistry.KboMutations.MutationLambdaContainer.Telemetry;
 using AssociationRegistry.KboMutations.Telemetry;
 using AssociationRegistry.Notifications;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 [assembly: LambdaSerializer(typeof(DefaultLambdaJsonSerializer))]
 
@@ -49,6 +50,12 @@ public static class Function
             .Build();
 
         var telemetryManager = new TelemetryManager(context.Logger, configurationRoot);
+
+        using var loggerFactory = LoggerFactory.Create(builder =>
+        {
+            builder.AddProvider(new LambdaLoggerProvider(context.Logger));
+            telemetryManager.ConfigureLogging(builder);
+        });
 
         var paramNamesConfiguration = GetParamNamesConfiguration(configurationRoot);
         var kboMutationsConfiguration = GetKboMutationsConfiguration(configurationRoot);
