@@ -1,3 +1,10 @@
+# [1.17.0](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.16.4...v1.17.0) (2025-12-23)
+
+
+### Features
+
+* or-2942 use cloudevents to pass parentactivity around ([fc18d72](https://github.com/informatievlaanderen/association-registry-kbo-mutations/commit/fc18d72a9c2a5a6d1eff996f7004e72fb92cc13a))
+
 ## [1.16.4](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.16.3...v1.16.4) (2025-12-23)
 
 
