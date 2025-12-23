@@ -1,3 +1,10 @@
+## [1.16.1](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.16.0...v1.16.1) (2025-12-23)
+
+
+### Bug Fixes
+
+* or-2942 add some time to flush ([b0b639b](https://github.com/informatievlaanderen/association-registry-kbo-mutations/commit/b0b639bc34f12f9f966ecca77e27f25868903911))
+
 # [1.16.0](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.15.0...v1.16.0) (2025-12-23)
 
 
