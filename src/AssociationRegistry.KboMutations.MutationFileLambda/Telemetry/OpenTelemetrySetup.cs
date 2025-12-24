@@ -106,16 +106,25 @@ public class OpenTelemetrySetup : IDisposable
             if (!string.IsNullOrEmpty(logsUri))
             {
                 _logger.LogInformation($"Adding OTLP logs exporter: {logsUri}");
-                options.AddOtlpExporter(exporterOptions =>
+                options.AddOtlpExporter((exporterOptions, processorOptions) =>
                 {
                     exporterOptions.Endpoint = new Uri(logsUri);
                     exporterOptions.Protocol = OtlpExportProtocol.HttpProtobuf;
+                    exporterOptions.TimeoutMilliseconds = 2000; // Match flush timeout
+
+                    // Configure batch processor for Lambda - export frequently
+                    processorOptions.BatchExportProcessorOptions.ScheduledDelayMilliseconds = 1000; // Export every 1 second
+                    processorOptions.BatchExportProcessorOptions.MaxExportBatchSize = 512;
+                    processorOptions.BatchExportProcessorOptions.MaxQueueSize = 2048;
+                    processorOptions.BatchExportProcessorOptions.ExporterTimeoutMilliseconds = 2000;
 
                     AddHeaders(exporterOptions, orgId);
 
                     _logger.LogInformation($"Logs - Endpoint: {exporterOptions.Endpoint}");
                     _logger.LogInformation($"Logs - Protocol: {exporterOptions.Protocol}");
                     _logger.LogInformation($"Logs - Headers: {exporterOptions.Headers}");
+                    _logger.LogInformation($"Logs - Timeout: {exporterOptions.TimeoutMilliseconds}ms");
+                    _logger.LogInformation($"Logs - Scheduled Delay: 1000ms");
                 });
             }
             else

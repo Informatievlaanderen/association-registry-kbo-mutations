@@ -96,8 +96,12 @@ public static class Function
         finally
         {
             context.Logger.LogInformation("Kbo mutation lambda finished");
-            await telemetryManager.FlushAsync(context);
+
+            // Dispose LoggerFactory synchronously to flush logs
             loggerFactory.Dispose();
+
+            // Then flush metrics and traces
+            await telemetryManager.FlushAsync(context);
         }
     }
 

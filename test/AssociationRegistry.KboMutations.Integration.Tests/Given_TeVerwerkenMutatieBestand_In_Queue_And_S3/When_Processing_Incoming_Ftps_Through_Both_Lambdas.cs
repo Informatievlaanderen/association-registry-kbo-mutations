@@ -1,10 +1,13 @@
 ﻿using System.Text.Json;
 using Amazon.Lambda.SQSEvents;
 using Amazon.Lambda.TestUtilities;
+using Amazon.SQS.Model;
 using AssociationRegistry.Kbo;
+using AssociationRegistry.KboMutations.CloudEvents;
 using AssociationRegistry.KboMutations.Integration.Tests.Given_TeVerwerkenMutatieBestand_In_Queue_And_S3.Fixtures;
 using AssociationRegistry.KboSyncLambda.SyncKbo;
 using AssociationRegistry.Vereniging;
+using CloudNative.CloudEvents;
 using FluentAssertions;
 using FluentAssertions.Execution;
 using Polly;
@@ -71,10 +74,9 @@ public class When_Processing_Incoming_Ftps_Through_Both_Lambdas : IClassFixture<
         var messages = await fixture.FetchMessages(fixture.KboSyncConfiguration.SyncQueueUrl);
         messages.Should().HaveCount(6);
 
-        var kboMessages = messages.Where(x => x.Body.Contains("KboNummer"))
-            .Select(x => JsonSerializer.Deserialize<TeSynchroniserenKboNummerMessage>(x.Body)).ToArray();
-        var inszMessages = messages.Where(x => x.Body.Contains("Insz"))
-            .Select(x => JsonSerializer.Deserialize<AssociationRegistry.KboMutations.Messages.TeSynchroniserenInszMessage>(x.Body)).ToArray();
+        var messageParser = new CloudEventMessageCollectionParser(messages);
+        var kboMessages = messageParser.ExtractKboMessages().ToArray();
+        var inszMessages = messageParser.ExtractInszMessages().ToArray();
 
         kboMessages.Should().BeEquivalentTo([
             new TeSynchroniserenKboNummerMessage(KboNummer.Create("0000000196")),
@@ -87,5 +89,74 @@ public class When_Processing_Incoming_Ftps_Through_Both_Lambdas : IClassFixture<
             new AssociationRegistry.KboMutations.Messages.TeSynchroniserenInszMessage("90000837000", true),
             new AssociationRegistry.KboMutations.Messages.TeSynchroniserenInszMessage("81010006400", false),
         ]);
+    }
+}
+
+internal class CloudEventMessageCollectionParser
+{
+    private readonly IEnumerable<CloudEvent> _cloudEvents;
+
+    public CloudEventMessageCollectionParser(IEnumerable<Message> sqsMessages)
+    {
+        _cloudEvents = sqsMessages
+            .Select(m => CloudEventExtensions.FromJson(m.Body))
+            .Where(ce => ce != null)
+            .Cast<CloudEvent>();
+    }
+
+    public IEnumerable<TeSynchroniserenKboNummerMessage> ExtractKboMessages()
+    {
+        return _cloudEvents
+            .Select(ce => new CloudEventDataExtractor(ce))
+            .Select(extractor => extractor.TryExtractKboMessage())
+            .Where(message => message != null)
+            .Cast<TeSynchroniserenKboNummerMessage>();
+    }
+
+    public IEnumerable<AssociationRegistry.KboMutations.Messages.TeSynchroniserenInszMessage> ExtractInszMessages()
+    {
+        return _cloudEvents
+            .Select(ce => new CloudEventDataExtractor(ce))
+            .Select(extractor => extractor.TryExtractInszMessage())
+            .Where(message => message != null)
+            .Cast<AssociationRegistry.KboMutations.Messages.TeSynchroniserenInszMessage>();
+    }
+}
+
+internal class CloudEventDataExtractor
+{
+    private readonly JsonElement _dataElement;
+
+    public CloudEventDataExtractor(CloudEvent cloudEvent)
+    {
+        var dataJson = JsonSerializer.Serialize(cloudEvent.Data);
+        _dataElement = JsonDocument.Parse(dataJson).RootElement;
+    }
+
+    public TeSynchroniserenKboNummerMessage? TryExtractKboMessage()
+    {
+        if (!_dataElement.TryGetProperty("KboNummer", out var kboElement))
+            return null;
+
+        var kboNummer = kboElement.GetString();
+        return kboNummer != null
+            ? new TeSynchroniserenKboNummerMessage(KboNummer.Create(kboNummer))
+            : null;
+    }
+
+    public AssociationRegistry.KboMutations.Messages.TeSynchroniserenInszMessage? TryExtractInszMessage()
+    {
+        if (!_dataElement.TryGetProperty("Insz", out var inszElement))
+            return null;
+
+        var insz = inszElement.GetString();
+        if (insz == null)
+            return null;
+
+        var overleden = _dataElement.TryGetProperty("Overleden", out var overledenElement)
+            ? overledenElement.GetBoolean()
+            : false;
+
+        return new AssociationRegistry.KboMutations.Messages.TeSynchroniserenInszMessage(insz, overleden);
     }
 }
