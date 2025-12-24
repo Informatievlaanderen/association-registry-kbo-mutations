@@ -1,3 +1,10 @@
+## [1.17.1](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.17.0...v1.17.1) (2025-12-24)
+
+
+### Bug Fixes
+
+* or-2942 don't dispose of logger factory ([9755efd](https://github.com/informatievlaanderen/association-registry-kbo-mutations/commit/9755efdf0dc87488321f062c80babcb5e2838c77))
+
 # [1.17.0](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.16.4...v1.17.0) (2025-12-23)
 
 
