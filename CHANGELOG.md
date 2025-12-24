@@ -1,3 +1,10 @@
+# [1.18.0](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.17.2...v1.18.0) (2025-12-24)
+
+
+### Features
+
+* or-2942 use ilogger everywhere ([1c0eaa2](https://github.com/informatievlaanderen/association-registry-kbo-mutations/commit/1c0eaa228414cfebf1ab4ccaacc7e63e0e900f42))
+
 ## [1.17.2](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.17.1...v1.17.2) (2025-12-24)
 
 
