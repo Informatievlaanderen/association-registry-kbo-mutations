@@ -57,7 +57,7 @@ public static class Function
 
         var telemetryManager = new TelemetryManager(context.Logger, configurationRoot);
 
-        using var loggerFactory = LoggerFactory.Create(builder =>
+        var loggerFactory = LoggerFactory.Create(builder =>
         {
             builder.AddProvider(new LambdaLoggerProvider(context.Logger));
             telemetryManager.ConfigureLogging(builder);
@@ -97,6 +97,7 @@ public static class Function
         {
             context.Logger.LogInformation("Kbo mutation lambda finished");
             await telemetryManager.FlushAsync(context);
+            loggerFactory.Dispose();
         }
     }
 

@@ -58,7 +58,7 @@ public class Function
 
         var telemetryManager = new TelemetryManager(context.Logger, configurationRoot);
 
-        using var loggerFactory = LoggerFactory.Create(builder =>
+        var loggerFactory = LoggerFactory.Create(builder =>
         {
             builder.AddProvider(new LambdaLoggerProvider(context.Logger));
             telemetryManager.ConfigureLogging(builder);
@@ -75,7 +75,7 @@ public class Function
                 context.Logger).TryCreate();
             var s3Client = new AmazonS3Client();
             var sqsClient = new AmazonSQSClient();
-            
+
             _processor = new TeVerwerkenMessageProcessor(s3Client,
                 sqsClient,
                 notifier,
@@ -100,6 +100,7 @@ public class Function
         {
             context.Logger.LogInformation("Kbo mutation file lambda finished");
             await telemetryManager.FlushAsync(context);
+            loggerFactory.Dispose();
         }
     }
 
