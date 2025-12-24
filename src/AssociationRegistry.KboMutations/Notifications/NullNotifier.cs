@@ -1,13 +1,13 @@
-using Amazon.Lambda.Core;
 using AssociationRegistry.Notifications;
+using Microsoft.Extensions.Logging;
 
 namespace AssocationRegistry.KboMutations.Notifications;
 
 public class NullNotifier : INotifier
 {
-    private readonly ILambdaLogger _logger;
+    private readonly ILogger _logger;
 
-    public NullNotifier(ILambdaLogger logger)
+    public NullNotifier(ILogger logger)
     {
         _logger = logger;
     }

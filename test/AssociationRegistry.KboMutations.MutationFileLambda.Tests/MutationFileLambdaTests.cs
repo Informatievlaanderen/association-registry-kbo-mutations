@@ -1,9 +1,7 @@
 using System.Net;
 using System.Text;
 using System.Text.Unicode;
-using Amazon.Lambda.Core;
 using Amazon.Lambda.SQSEvents;
-using Amazon.Lambda.TestUtilities;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.SQS;
@@ -14,6 +12,8 @@ using AssociationRegistry.KboMutations.CloudEvents;
 using AssociationRegistry.KboMutations.MutationFileLambda.Csv;
 using AssociationRegistry.KboMutations.MutationFileLambda.FileProcessors;
 using AssociationRegistry.Notifications;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Newtonsoft.Json;
 using Xunit;
@@ -35,7 +35,7 @@ public class MutationFileLambdaTests
             new KboSyncConfiguration(),
             MutatieBestandProcessors.CreateDefault(new KboSyncConfiguration(),
                 sqsClient.Object,
-                new TestLambdaLogger()),
+                NullLogger.Instance),
             new AssociationRegistry.KboMutations.Telemetry.KboMutationsMetrics(new System.Diagnostics.Metrics.Meter("test")));
 
         var cloudEventJson = CloudEventBuilder.MutationFileQueuedForProcessing()
@@ -52,7 +52,7 @@ public class MutationFileLambdaTests
                     Body = cloudEventJson
                 }
             }
-        }, Mock.Of<ILambdaLogger>(), CancellationToken.None);
+        }, Mock.Of<ILogger>(), CancellationToken.None);
 
         sqsClient.Verify(x => x.SendMessageAsync(It.IsAny<string>(),
             It.IsAny<string>(),

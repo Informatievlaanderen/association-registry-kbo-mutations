@@ -1,4 +1,4 @@
-using Amazon.Lambda.Core;
+using Microsoft.Extensions.Logging;
 using AssociationRegistry.Notifications;
 using Slack.Webhooks;
 
@@ -6,10 +6,10 @@ namespace AssocationRegistry.KboMutations.Notifications;
 
 public class SlackNotifier : INotifier
 {
-    private readonly ILambdaLogger _logger;
+    private readonly ILogger _logger;
     private SlackClient _slackClient;
 
-    public SlackNotifier(ILambdaLogger logger, string webhookUrl)
+    public SlackNotifier(ILogger logger, string webhookUrl)
     {
         if (webhookUrl == null) throw new ArgumentNullException(nameof(webhookUrl));
         _logger = logger;

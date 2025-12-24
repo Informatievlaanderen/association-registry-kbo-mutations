@@ -1,5 +1,5 @@
+using Microsoft.Extensions.Logging;
 using System.Collections.ObjectModel;
-using Amazon.Lambda.Core;
 using Amazon.SQS;
 using AssocationRegistry.KboMutations.Configuration;
 using AssociationRegistry.KboMutations.MutationFileLambda.Csv;
@@ -15,7 +15,7 @@ public class MutatieBestandProcessors: ReadOnlyCollection<IMutatieBestandProcess
 
     public static MutatieBestandProcessors CreateDefault(KboSyncConfiguration kboSyncConfiguration,
         IAmazonSQS sqsClient,
-        ILambdaLogger contextLogger,
+        ILogger contextLogger,
         KboMutationsMetrics? metrics = null)
     {
         var csvParser = new CsvMutatieBestandParser(metrics);

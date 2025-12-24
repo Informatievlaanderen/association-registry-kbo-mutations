@@ -1,17 +1,17 @@
 using System.Diagnostics;
-using Amazon.Lambda.Core;
 using AssociationRegistry.KboMutations.MutationLambdaContainer.Abstractions;
 using AssociationRegistry.KboMutations.MutationLambdaContainer.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace AssociationRegistry.KboMutations.MutationLambdaContainer.Ftps;
 
 public class CurlFtpsClient : IFtpsClient
 {
     private readonly KboMutationsConfiguration _kboMutationsConfiguration;
-    private readonly ILambdaLogger _logger;
+    private readonly ILogger _logger;
 
     public CurlFtpsClient(
-        ILambdaLogger logger,
+        ILogger logger,
         KboMutationsConfiguration kboMutationsConfiguration)
     {
         _logger = logger;

@@ -1,4 +1,3 @@
-using Amazon.Lambda.Core;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.SQS;
@@ -10,6 +9,7 @@ using AssociationRegistry.KboMutations.MutationLambdaContainer.Configuration;
 using AssociationRegistry.KboMutations.MutationLambdaContainer.Ftps;
 using AssociationRegistry.Notifications;
 using FluentAssertions;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 
 namespace AssociationRegistry.KboMutations.MutationLambdaContainer.Tests;
@@ -32,7 +32,7 @@ public class MutatieFtpProcessorTests
         var amazonS3 = new Mock<IAmazonS3>();
         var amazonSqs = new Mock<IAmazonSQS>();
 
-        var sut = new MutatieFtpProcessor(Mock.Of<ILambdaLogger>(), ftpsClient.Object, amazonS3.Object,
+        var sut = new MutatieFtpProcessor(NullLogger.Instance, ftpsClient.Object, amazonS3.Object,
             amazonSqs.Object, new KboMutationsConfiguration(){SourcePath = "test", Host = "host", Port = 123, CachePath = "cache"}, new KboSyncConfiguration(), Mock.Of<INotifier>(),
             new AssociationRegistry.KboMutations.Telemetry.KboMutationsMetrics(new System.Diagnostics.Metrics.Meter("test")));
         await sut.ProcessAsync();

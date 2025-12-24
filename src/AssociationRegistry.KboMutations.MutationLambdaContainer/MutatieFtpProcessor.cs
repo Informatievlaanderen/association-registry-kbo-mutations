@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Text.Json;
-using Amazon.Lambda.Core;
 using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.SQS;
@@ -18,6 +17,7 @@ using AssociationRegistry.KboMutations.CloudEvents;
 using AssociationRegistry.KboMutations.MutationLambdaContainer.Logging;
 using AssociationRegistry.KboMutations.Telemetry;
 using AssociationRegistry.Notifications;
+using Microsoft.Extensions.Logging;
 
 namespace AssociationRegistry.KboMutations.MutationLambdaContainer;
 
@@ -27,13 +27,13 @@ public class MutatieFtpProcessor
     private readonly IFtpsClient _ftpsClient;
     private readonly KboMutationsConfiguration _kboMutationsConfiguration;
     private readonly KboSyncConfiguration _kboSyncConfiguration;
-    private readonly ILambdaLogger _logger;
+    private readonly ILogger _logger;
     private readonly INotifier _notifier;
     private readonly IAmazonS3 _s3Client;
     private readonly IAmazonSQS _sqsClient;
     private readonly KboMutationsMetrics _metrics;
 
-    public MutatieFtpProcessor(ILambdaLogger logger, IFtpsClient ftpsClient, IAmazonS3 s3Client,
+    public MutatieFtpProcessor(ILogger logger, IFtpsClient ftpsClient, IAmazonS3 s3Client,
         IAmazonSQS sqsClient, KboMutationsConfiguration kboMutationsConfiguration,
         KboSyncConfiguration kboSyncConfiguration, INotifier notifier, KboMutationsMetrics metrics)
     {

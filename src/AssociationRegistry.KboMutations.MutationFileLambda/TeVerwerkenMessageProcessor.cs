@@ -1,9 +1,9 @@
+using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
 using System.Globalization;
 using System.Net;
 using System.Text.Json;
-using Amazon.Lambda.Core;
 using Amazon.Lambda.SQSEvents;
 using Amazon.S3;
 using Amazon.SQS;
@@ -49,7 +49,7 @@ public class TeVerwerkenMessageProcessor
     }
 
     public async Task ProcessMessage(SQSEvent sqsEvent,
-        ILambdaLogger contextLogger,
+        ILogger contextLogger,
         CancellationToken cancellationToken)
     {
         contextLogger.LogInformation($"{nameof(_kboSyncConfiguration.MutationFileBucketName)}:{_kboSyncConfiguration.MutationFileBucketName}");
@@ -94,7 +94,7 @@ public class TeVerwerkenMessageProcessor
             throw new AggregateException(encounteredExceptions);
     }
 
-    private async Task<List<SendMessageResponse>> Handle(ILambdaLogger contextLogger,
+    private async Task<List<SendMessageResponse>> Handle(ILogger contextLogger,
         TeVerwerkenMutatieBestandMessage? message,
         ActivityContext? parentContext,
         string? sourceFileName,

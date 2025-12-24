@@ -63,14 +63,18 @@ public static class Function
             telemetryManager.ConfigureLogging(builder);
         });
 
+        var logger = loggerFactory.CreateLogger("KboMutations.MutationLambdaContainer");
+
         var paramNamesConfiguration = GetParamNamesConfiguration(configurationRoot);
         var kboMutationsConfiguration = GetKboMutationsConfiguration(configurationRoot);
         var kboSyncConfiguration = GetKboSyncConfiguration(configurationRoot);
         var ssmClientWrapper = new SsmClientWrapper(new AmazonSimpleSystemsManagementClient());
-        var notifier = await new NotifierFactory(ssmClientWrapper, paramNamesConfiguration, context.Logger).TryCreate();
+        var notifierLogger = loggerFactory.CreateLogger("NotifierFactory");
+        var notifier = await new NotifierFactory(ssmClientWrapper, paramNamesConfiguration, notifierLogger).TryCreate();
 
         try
         {
+            logger.LogInformation("Starting KBO mutation lambda processing");
             var amazonSqsClient = new AmazonSQSClient();
 
             await NotifyMetrics(notifier, amazonSqsClient, kboSyncConfiguration);
@@ -82,26 +86,32 @@ public static class Function
                 kboMutationsConfiguration,
                 kboSyncConfiguration,
                 notifier,
-                metrics);
+                metrics,
+                loggerFactory);
 
+            logger.LogInformation("Processing mutation files");
             await mutatieBestandProcessor.ProcessAsync();
+            logger.LogInformation("Mutation file processing completed successfully");
             await notifier.Notify(new KboMutationLambdaVoltooid());
         }
         catch (Exception ex)
         {
+            logger.LogError(ex, "KBO mutation lambda failed with error: {ErrorMessage}", ex.Message);
             await notifier.Notify(new KboMutationLambdaGefaald(ex));
             await telemetryManager.FlushAsync(context);
             throw;
         }
         finally
         {
-            context.Logger.LogInformation("Kbo mutation lambda finished");
+            logger.LogInformation("Kbo mutation lambda finished");
 
-            // Dispose LoggerFactory synchronously to flush logs
-            loggerFactory.Dispose();
-
-            // Then flush metrics and traces
+            // Flush metrics and traces first (while logging still works)
             await telemetryManager.FlushAsync(context);
+
+            // Then dispose LoggerFactory to flush logs
+            context.Logger.LogInformation("Disposing LoggerFactory to flush logs");
+            loggerFactory.Dispose();
+            context.Logger.LogInformation("LoggerFactory disposed");
         }
     }
 
@@ -109,17 +119,19 @@ public static class Function
         IAmazonSQS amazonSqsClient,
         KboMutationsConfiguration kboMutationsConfiguration,
         KboSyncConfiguration kboSyncConfigurtion,
-        INotifier notifier, 
-        KboMutationsMetrics metrics)
+        INotifier notifier,
+        KboMutationsMetrics metrics,
+        ILoggerFactory loggerFactory)
     {
         var certProvider = new CertificatesProvider(kboMutationsConfiguration);
 
         var amazonS3Client = new AmazonS3Client();
-        await certProvider.WriteCertificatesToFileSystem(context.Logger, amazonS3Client);
+        var certLogger = loggerFactory.CreateLogger("CertificatesProvider");
+        await certProvider.WriteCertificatesToFileSystem(certLogger, amazonS3Client);
 
         var mutatieBestandProcessor = new MutatieFtpProcessor(
-            context.Logger,
-            new CurlFtpsClient(context.Logger, kboMutationsConfiguration),
+            loggerFactory.CreateLogger("MutatieFtpProcessor"),
+            new CurlFtpsClient(loggerFactory.CreateLogger("CurlFtpsClient"), kboMutationsConfiguration),
             amazonS3Client,
             amazonSqsClient,
             kboMutationsConfiguration,

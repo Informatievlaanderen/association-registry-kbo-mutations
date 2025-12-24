@@ -15,6 +15,7 @@ using AssociationRegistry.KboMutations.Tests.Fixtures;
 using AssociationRegistry.Vereniging;
 using Marten;
 using Marten.Events;
+using Microsoft.Extensions.Logging.Abstractions;
 using Npgsql;
 using Weasel.Core;
 
@@ -46,7 +47,7 @@ public class With_TeVerwerkenMutatieBestand_FromLocalstack : WithLocalstackFixtu
 
     protected override async Task SetupAsync()
     {
-        var logger = new TestLambdaLogger();
+        var logger = NullLogger.Instance;
         var sftpPath = "../../../../../sftp";
         var seedFolder = "seed";
         var inFolder = "files/in";
@@ -100,12 +101,12 @@ public class With_TeVerwerkenMutatieBestand_FromLocalstack : WithLocalstackFixtu
         FtpProcessor = new MutatieFtpProcessor(logger, SecureFtpClient, AmazonS3Client,
             AmazonSqsClient, kboMutationsConfiguration,
             KboSyncConfiguration,
-            new NullNotifier(new TestLambdaLogger()),
+            new NullNotifier(NullLogger.Instance),
             metrics);
 
         TeVerwerkenMessageProcessor = new TeVerwerkenMessageProcessor(AmazonS3Client,
             AmazonSqsClient,
-            new NullNotifier(new TestLambdaLogger()),
+            new NullNotifier(NullLogger.Instance),
             KboSyncConfiguration,
             MutatieBestandProcessors.CreateDefault(KboSyncConfiguration,
                 AmazonSqsClient,

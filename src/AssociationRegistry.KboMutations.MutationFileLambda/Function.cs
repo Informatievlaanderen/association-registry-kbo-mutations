@@ -64,17 +64,25 @@ public class Function
             telemetryManager.ConfigureLogging(builder);
         });
 
+        var logger = loggerFactory.CreateLogger("KboMutations.MutationFileLambda");
+
         try
         {
+            logger.LogInformation("KBO mutation file lambda started. Records to process: {RecordCount}", @event.Records.Count);
+
             var amazonKboSyncConfiguration = GetKboSyncConfiguration(configurationRoot);
             var ssmClientWrapper = new SsmClientWrapper(new AmazonSimpleSystemsManagementClient());
             var paramNamesConfiguration = GetParamNamesConfiguration(configurationRoot);
+            var notifierLogger = loggerFactory.CreateLogger("NotifierFactory");
             var notifier = await new NotifierFactory(
                 ssmClientWrapper,
                 paramNamesConfiguration,
-                context.Logger).TryCreate();
+                notifierLogger).TryCreate();
             var s3Client = new AmazonS3Client();
             var sqsClient = new AmazonSQSClient();
+
+            var processorLogger = loggerFactory.CreateLogger("TeVerwerkenMessageProcessor");
+            var fileProcessorsLogger = loggerFactory.CreateLogger("MutatieBestandProcessors");
 
             _processor = new TeVerwerkenMessageProcessor(s3Client,
                 sqsClient,
@@ -82,29 +90,30 @@ public class Function
                 amazonKboSyncConfiguration,
                 MutatieBestandProcessors.CreateDefault(amazonKboSyncConfiguration,
                     sqsClient,
-                    context.Logger,
+                    fileProcessorsLogger,
                     metrics),
                 metrics);
 
-            context.Logger.LogInformation($"KBO mutation file lambda gestart. Aantal berichten te verwerken: {@event.Records.Count}");
-            await _processor.ProcessMessage(@event, context.Logger, CancellationToken.None);
-            context.Logger.LogInformation($"KBO mutation file lambda voltooid.");
+            await _processor.ProcessMessage(@event, processorLogger, CancellationToken.None);
+            logger.LogInformation("KBO mutation file lambda completed successfully");
         }
         catch (Exception e)
         {
-            context.Logger.LogLine($"Error: {e.Message}");
+            logger.LogError(e, "KBO mutation file lambda failed with error: {ErrorMessage}", e.Message);
             await telemetryManager.FlushAsync(context);
             throw;
         }
         finally
         {
-            context.Logger.LogInformation("Kbo mutation file lambda finished");
+            logger.LogInformation("Kbo mutation file lambda finished");
 
-            // Dispose LoggerFactory synchronously to flush logs
-            loggerFactory.Dispose();
-
-            // Then flush metrics and traces
+            // Flush metrics and traces first (while logging still works)
             await telemetryManager.FlushAsync(context);
+
+            // Then dispose LoggerFactory to flush logs
+            context.Logger.LogInformation("Disposing LoggerFactory to flush logs");
+            loggerFactory.Dispose();
+            context.Logger.LogInformation("LoggerFactory disposed");
         }
     }
 

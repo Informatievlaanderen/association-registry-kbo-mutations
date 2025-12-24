@@ -1,6 +1,5 @@
 ﻿using System.Text.Json;
 using Amazon.Lambda.SQSEvents;
-using Amazon.Lambda.TestUtilities;
 using Amazon.SQS.Model;
 using AssociationRegistry.Kbo;
 using AssociationRegistry.KboMutations.CloudEvents;
@@ -10,6 +9,7 @@ using AssociationRegistry.Vereniging;
 using CloudNative.CloudEvents;
 using FluentAssertions;
 using FluentAssertions.Execution;
+using Microsoft.Extensions.Logging.Abstractions;
 using Polly;
 using Xunit;
 using Xunit.Abstractions;
@@ -46,7 +46,7 @@ public class When_Processing_Incoming_Ftps_Through_Both_Lambdas : IClassFixture<
                         [
                             new() { Body = message.Body }
                         ]
-                    }, new TestLambdaLogger(), CancellationToken.None)
+                    }, NullLogger.Instance, CancellationToken.None)
                     .GetAwaiter()
                     .GetResult();
             }

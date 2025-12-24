@@ -1,6 +1,6 @@
-using Amazon.Lambda.Core;
 using Amazon.S3;
 using AssociationRegistry.KboMutations.MutationLambdaContainer.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace AssociationRegistry.KboMutations.MutationLambdaContainer.Certificates;
 
@@ -15,8 +15,8 @@ public class CertificatesProvider
 
         _kboMutationsConfiguration = kboMutationsConfiguration;
     }
-    
-    public async Task WriteCertificatesToFileSystem(ILambdaLogger logger, IAmazonS3 s3Client)
+
+    public async Task WriteCertificatesToFileSystem(ILogger logger, IAmazonS3 s3Client)
     {
         logger.LogInformation($"Downloading certs from {_kboMutationsConfiguration.CertBucketName}");
         

@@ -1,7 +1,7 @@
+using Microsoft.Extensions.Logging;
 using System.Diagnostics;
 using System.Globalization;
 using System.Text.Json;
-using Amazon.Lambda.Core;
 using Amazon.SQS;
 using Amazon.SQS.Model;
 using AssocationRegistry.KboMutations.Configuration;
@@ -21,12 +21,12 @@ public class PersoonMutatieBestandProcessor: IMutatieBestandProcessor
     private readonly KboSyncConfiguration _kboSyncConfiguration;
     private readonly IAmazonSQS _sqsClient;
     private readonly IPersoonXmlMutatieBestandParser _xmlParser;
-    private readonly ILambdaLogger _contextLogger;
+    private readonly ILogger _contextLogger;
 
     public PersoonMutatieBestandProcessor(KboSyncConfiguration kboSyncConfiguration,
         IAmazonSQS sqsClient,
         IPersoonXmlMutatieBestandParser xmlParser,
-        ILambdaLogger contextLogger)
+        ILogger contextLogger)
     {
         _kboSyncConfiguration = kboSyncConfiguration;
         _sqsClient = sqsClient;
