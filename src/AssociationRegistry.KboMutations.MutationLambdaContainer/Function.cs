@@ -72,6 +72,11 @@ public static class Function
         var notifierLogger = loggerFactory.CreateLogger("NotifierFactory");
         var notifier = await new NotifierFactory(ssmClientWrapper, paramNamesConfiguration, notifierLogger).TryCreate();
 
+        using var rootActivity = KboMutationsActivitySource.StartLambdaExecution(
+            LambdaNames.KboMutations,
+            SemanticConventions.TriggerTypes.Timer,
+            coldStart);
+
         try
         {
             logger.LogInformation("Starting KBO mutation lambda processing");
@@ -96,6 +101,7 @@ public static class Function
         }
         catch (Exception ex)
         {
+            rootActivity.RecordException(ex);
             logger.LogError(ex, "KBO mutation lambda failed with error: {ErrorMessage}", ex.Message);
             await notifier.Notify(new KboMutationLambdaGefaald(ex));
             await telemetryManager.FlushAsync(context);

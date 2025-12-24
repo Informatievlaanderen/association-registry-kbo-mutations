@@ -66,6 +66,11 @@ public class Function
 
         var logger = loggerFactory.CreateLogger("KboMutations.MutationFileLambda");
 
+        using var rootActivity = KboMutationsActivitySource.StartLambdaExecution(
+            LambdaNames.KboMutationFile,
+            SemanticConventions.TriggerTypes.Pubsub,
+            coldStart);
+
         try
         {
             logger.LogInformation("KBO mutation file lambda started. Records to process: {RecordCount}", @event.Records.Count);
@@ -99,6 +104,7 @@ public class Function
         }
         catch (Exception e)
         {
+            rootActivity.RecordException(e);
             logger.LogError(e, "KBO mutation file lambda failed with error: {ErrorMessage}", e.Message);
             await telemetryManager.FlushAsync(context);
             throw;
