@@ -1,3 +1,10 @@
+## [1.18.1](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.18.0...v1.18.1) (2025-12-24)
+
+
+### Bug Fixes
+
+* or-2942 add root activity, gather telemetry activity constants ([ec25aef](https://github.com/informatievlaanderen/association-registry-kbo-mutations/commit/ec25aefe11f7f05155613fdbde10310d40d36d34))
+
 # [1.18.0](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.17.2...v1.18.0) (2025-12-24)
 
 
