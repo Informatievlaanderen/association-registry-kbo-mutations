@@ -1,3 +1,10 @@
+## [1.17.2](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.17.1...v1.17.2) (2025-12-24)
+
+
+### Bug Fixes
+
+* or-2942 try new settings for log exporting ([e229734](https://github.com/informatievlaanderen/association-registry-kbo-mutations/commit/e22973462892221403781cf15f28d4c4c4620a63))
+
 ## [1.17.1](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.17.0...v1.17.1) (2025-12-24)
 
 
