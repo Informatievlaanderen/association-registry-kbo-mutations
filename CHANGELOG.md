@@ -1,3 +1,10 @@
+## [1.18.3](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.18.2...v1.18.3) (2025-12-25)
+
+
+### Bug Fixes
+
+* or-2942 fix lambda invocation and cold start detector metrics ([9b71801](https://github.com/informatievlaanderen/association-registry-kbo-mutations/commit/9b718015a05ce9f5c6975979bb2518b4994650d8))
+
 ## [1.18.2](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.18.1...v1.18.2) (2025-12-25)
 
 
