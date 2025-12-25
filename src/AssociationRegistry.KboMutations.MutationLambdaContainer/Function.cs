@@ -45,10 +45,9 @@ public static class Function
     {
         var meter = new Meter(KboMutationsMetrics.MeterName);
         var metrics = new KboMutationsMetrics(meter);
-        
+
         var coldStart = string.IsNullOrEmpty(Environment.GetEnvironmentVariable("AWS_EXECUTION_ENV"));
-        metrics.RecordLambdaInvocation("kbo_mutations", coldStart);
-        
+
         var configurationRoot = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("appsettings.json", true, true)
@@ -56,6 +55,8 @@ public static class Function
             .Build();
 
         var telemetryManager = new TelemetryManager(context.Logger, configurationRoot);
+
+        metrics.RecordLambdaInvocation("kbo_mutations", coldStart);
 
         var loggerFactory = LoggerFactory.Create(builder =>
         {
