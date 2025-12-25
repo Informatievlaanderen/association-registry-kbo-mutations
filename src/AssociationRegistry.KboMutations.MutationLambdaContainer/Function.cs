@@ -27,6 +27,8 @@ namespace AssociationRegistry.KboMutations.MutationLambdaContainer;
 
 public static class Function
 {
+    private static readonly ColdStartDetector ColdStartDetector = new();
+
     private static async Task Main()
     {
         var handler = FunctionHandler;
@@ -43,10 +45,7 @@ public static class Function
 
     public static async Task SharedFunctionHandler(ILambdaContext context)
     {
-        var meter = new Meter(KboMutationsMetrics.MeterName);
-        var metrics = new KboMutationsMetrics(meter);
-
-        var coldStart = string.IsNullOrEmpty(Environment.GetEnvironmentVariable("AWS_EXECUTION_ENV"));
+        var coldStart = ColdStartDetector.IsColdStart();
 
         var configurationRoot = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
@@ -55,6 +54,9 @@ public static class Function
             .Build();
 
         var telemetryManager = new TelemetryManager(context.Logger, configurationRoot);
+
+        var meter = new Meter(KboMutationsMetrics.MeterName);
+        var metrics = new KboMutationsMetrics(meter);
 
         metrics.RecordLambdaInvocation("kbo_mutations", coldStart);
 

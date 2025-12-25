@@ -24,6 +24,7 @@ namespace AssociationRegistry.KboMutations.MutationFileLambda;
 public class Function
 {
     private static TeVerwerkenMessageProcessor? _processor;
+    private static readonly ColdStartDetector ColdStartDetector = new();
 
     private static async Task<int> Main()
     {
@@ -44,10 +45,7 @@ public class Function
     /// <returns></returns>
     public static async Task FunctionHandler(SQSEvent @event, ILambdaContext context)
     {
-        var meter = new Meter(KboMutationsMetrics.MeterName);
-        var metrics = new KboMutationsMetrics(meter);
-
-        var coldStart = string.IsNullOrEmpty(Environment.GetEnvironmentVariable("AWS_EXECUTION_ENV"));
+        var coldStart = ColdStartDetector.IsColdStart();
 
         var configurationRoot = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
@@ -56,6 +54,9 @@ public class Function
             .Build();
 
         var telemetryManager = new TelemetryManager(context.Logger, configurationRoot);
+
+        var meter = new Meter(KboMutationsMetrics.MeterName);
+        var metrics = new KboMutationsMetrics(meter);
 
         metrics.RecordLambdaInvocation("kbo_mutation_file", coldStart);
 
