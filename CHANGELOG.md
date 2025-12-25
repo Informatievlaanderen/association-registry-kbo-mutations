@@ -1,3 +1,10 @@
+## [1.18.4](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.18.3...v1.18.4) (2025-12-25)
+
+
+### Bug Fixes
+
+* or-2942 use delta temporality ([e734c26](https://github.com/informatievlaanderen/association-registry-kbo-mutations/commit/e734c26c2ee2030eb5ab9616a16837628cfb2396))
+
 ## [1.18.3](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.18.2...v1.18.3) (2025-12-25)
 
 
