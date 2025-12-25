@@ -1,3 +1,10 @@
+## [1.18.2](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.18.1...v1.18.2) (2025-12-25)
+
+
+### Bug Fixes
+
+* or-2942 record meter after manager setup ([2878bc0](https://github.com/informatievlaanderen/association-registry-kbo-mutations/commit/2878bc0705bb890c5c47093718065d969c6f5e07))
+
 ## [1.18.1](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.18.0...v1.18.1) (2025-12-24)
 
 
