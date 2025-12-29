@@ -47,16 +47,15 @@ public class OpenTelemetrySetup : IDisposable
         if (!string.IsNullOrEmpty(metricsUri))
         {
             _logger.LogInformation($"Adding OTLP metrics exporter: {metricsUri}");
-        
+
             builder.AddOtlpExporter((exporterOptions, readerOptions) =>
             {
                 exporterOptions.Endpoint = new Uri(metricsUri);
                 exporterOptions.Protocol = OtlpExportProtocol.HttpProtobuf;
-                exporterOptions.Headers = !string.IsNullOrEmpty(orgId) 
-                    ? $"X-Scope-OrgID={orgId}" 
+                exporterOptions.Headers = !string.IsNullOrEmpty(orgId)
+                    ? $"X-Scope-OrgID={orgId}"
                     : null;
-                
-                // Export only on ForceFlush, not periodically
+
                 readerOptions.PeriodicExportingMetricReaderOptions.ExportIntervalMilliseconds = 60000;
             });
             builder.AddConsoleExporter();
@@ -117,10 +116,9 @@ public class OpenTelemetrySetup : IDisposable
                 {
                     exporterOptions.Endpoint = new Uri(logsUri);
                     exporterOptions.Protocol = OtlpExportProtocol.HttpProtobuf;
-                    exporterOptions.TimeoutMilliseconds = 2000; // Match flush timeout
+                    exporterOptions.TimeoutMilliseconds = 2000;
 
-                    // Configure batch processor for Lambda - export frequently
-                    processorOptions.BatchExportProcessorOptions.ScheduledDelayMilliseconds = 1000; // Export every 1 second
+                    processorOptions.BatchExportProcessorOptions.ScheduledDelayMilliseconds = 1000;
                     processorOptions.BatchExportProcessorOptions.MaxExportBatchSize = 512;
                     processorOptions.BatchExportProcessorOptions.MaxQueueSize = 2048;
                     processorOptions.BatchExportProcessorOptions.ExporterTimeoutMilliseconds = 2000;
@@ -149,8 +147,6 @@ public class OpenTelemetrySetup : IDisposable
 
         Action<ResourceBuilder> configureResource = r =>
         {
-            // Resource builder is already empty (CreateEmpty()), so no need to Clear()
-            // Only add explicitly what we want - prevents cardinality explosion from auto-detected attributes
             r.AddService(
                     serviceName,
                     serviceVersion: assemblyVersion,

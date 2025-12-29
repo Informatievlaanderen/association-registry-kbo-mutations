@@ -53,7 +53,6 @@ public class OpenTelemetrySetup : IDisposable
                     ? $"X-Scope-OrgID={orgId}"
                     : null;
 
-                // Export only on ForceFlush, not periodically
                 readerOptions.PeriodicExportingMetricReaderOptions.ExportIntervalMilliseconds = 60000;
             });
             builder.AddConsoleExporter();
