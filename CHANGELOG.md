@@ -1,3 +1,10 @@
+## [1.18.6](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.18.5...v1.18.6) (2025-12-29)
+
+
+### Bug Fixes
+
+* or-2942 simplify setup ([abeab57](https://github.com/informatievlaanderen/association-registry-kbo-mutations/commit/abeab572f167b873d3287f040e5e8d106c3368a6))
+
 ## [1.18.5](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.18.4...v1.18.5) (2025-12-29)
 
 
