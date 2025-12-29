@@ -53,10 +53,12 @@ public static class Function
             .AddEnvironmentVariables()
             .Build();
 
-        var telemetryManager = new TelemetryManager(context.Logger, configurationRoot);
-
+        // Create Meter BEFORE MeterProvider so it can subscribe to it
         var meter = new Meter(KboMutationsMetrics.MeterName);
         var metrics = new KboMutationsMetrics(meter);
+
+        // Now setup telemetry - MeterProvider will subscribe to existing meters
+        var telemetryManager = new TelemetryManager(context.Logger, configurationRoot);
 
         metrics.RecordLambdaInvocation("kbo_mutations", coldStart);
 

@@ -1,4 +1,4 @@
-namespace AssociationRegistry.KboMutations.MutationLambdaContainer.Telemetry;
+namespace AssociationRegistry.KboMutations.Telemetry;
 
 using Amazon.Lambda.Core;
 using global::OpenTelemetry;
@@ -9,7 +9,6 @@ using global::OpenTelemetry.Resources;
 using global::OpenTelemetry.Trace;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using OpenTelemetry.Metrics;
 using System.Reflection;
 
 public class OpenTelemetrySetup : IDisposable
@@ -19,24 +18,35 @@ public class OpenTelemetrySetup : IDisposable
     public TracerProvider TracerProvider { get; private set; }
     public MeterProvider MeterProvider { get; private set; }
 
-    public const string MeterName = "kbomutations.mutation.lambda.metrics";
-
-    public OpenTelemetrySetup(ILambdaLogger contextLogger, IConfigurationRoot configuration)
+    public OpenTelemetrySetup(
+        ILambdaLogger contextLogger,
+        string serviceName)
     {
         _logger = contextLogger;
         _logger.LogInformation("OpenTelemetrySetup: Starting setup");
 
-        _resources = GetResources(contextLogger);
+        _resources = GetResources(contextLogger, serviceName);
     }
 
-    public MeterProvider SetupMeter(string? metricsUri, string? orgId)
+    public MeterProvider SetupMeter(string? metricsUri, string? orgId, params string[] meterNames)
     {
         var builder = Sdk.CreateMeterProviderBuilder()
                          .ConfigureResource(_resources.ConfigureResourceBuilder)
-                         .AddMeter(MeterName)
-                         .AddMeter(AssociationRegistry.KboMutations.Telemetry.KboMutationsMetrics.MeterName)
                          .AddRuntimeInstrumentation()
                          .AddHttpClientInstrumentation();
+
+        // Add all requested meters
+        foreach (var meterName in meterNames)
+        {
+            _logger.LogInformation($"Registering meter: {meterName}");
+            builder.AddMeter(meterName);
+        }
+
+        // Also add wildcard to catch any meters we might have missed
+        builder.AddMeter("*");
+
+        // Add console exporter for debugging
+        builder.AddConsoleExporter();
 
         if (!string.IsNullOrEmpty(metricsUri))
         {
@@ -63,7 +73,7 @@ public class OpenTelemetrySetup : IDisposable
             // This prevents cardinality explosion from counter resets
             var reader = new BaseExportingMetricReader(exporter)
             {
-                // TemporalityPreference = MetricReaderTemporalityPreference.Delta
+                // TemporalityPreference = MetricReaderTemporalityPreferencez.Delta
             };
 
             builder.AddReader(reader);
@@ -83,12 +93,16 @@ public class OpenTelemetrySetup : IDisposable
         return MeterProvider;
     }
 
-    public TracerProvider SetUpTracing(string? tracesUri, string? orgId)
+    public TracerProvider SetUpTracing(string? tracesUri, string? orgId, params string[] activitySourceNames)
     {
         var builder = Sdk.CreateTracerProviderBuilder()
                          .AddHttpClientInstrumentation()
-                         .AddSource(AssociationRegistry.KboMutations.Telemetry.KboMutationsActivitySource.Source.Name)
                          .ConfigureResource(_resources.ConfigureResourceBuilder);
+
+        foreach (var sourceName in activitySourceNames)
+        {
+            builder.AddSource(sourceName);
+        }
 
         if (!string.IsNullOrEmpty(tracesUri))
         {
@@ -154,9 +168,8 @@ public class OpenTelemetrySetup : IDisposable
         });
     }
 
-    public OpenTelemetryResources GetResources(ILambdaLogger contextLogger)
+    private OpenTelemetryResources GetResources(ILambdaLogger contextLogger, string serviceName)
     {
-        var serviceName = "KboMutations.MutationLambda";
         var assemblyVersion = Assembly.GetExecutingAssembly()?.GetName()?.Version?.ToString() ?? "unknown";
         var serviceInstanceId = Environment.GetEnvironmentVariable("AWS_LAMBDA_FUNCTION_NAME") ?? Environment.MachineName;
         var environment = Environment.GetEnvironmentVariable("ENVIRONMENT")?.ToLowerInvariant() ?? "unknown";
@@ -182,8 +195,8 @@ public class OpenTelemetrySetup : IDisposable
 
     public void Dispose()
     {
-        MeterProvider.Dispose();
-        TracerProvider.Dispose();
+        MeterProvider?.Dispose();
+        TracerProvider?.Dispose();
     }
 
     private static void AddHeaders(OtlpExporterOptions options, string? orgScope)
@@ -217,9 +230,17 @@ public class LoggingHttpMessageHandler : DelegatingHandler
 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
+        Console.WriteLine($"======== OTLP EXPORT REQUEST ========");
+        Console.WriteLine($"Sending to: {request.RequestUri}");
+
         var response = await base.SendAsync(request, cancellationToken);
 
-        if (!response.IsSuccessStatusCode)
+        if (response.IsSuccessStatusCode)
+        {
+            Console.WriteLine($"✓ OTLP Export SUCCESS: HTTP {(int)response.StatusCode} {response.ReasonPhrase}");
+            _logger.LogLine($"OTLP Export succeeded: {response.StatusCode}");
+        }
+        else
         {
             var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
             Console.WriteLine($"======== OTLP EXPORT ERROR ========");
@@ -231,6 +252,7 @@ public class LoggingHttpMessageHandler : DelegatingHandler
 
             _logger.LogLine($"OTLP ERROR: {response.StatusCode} - {responseBody}");
         }
+        Console.WriteLine($"=====================================");
 
         return response;
     }

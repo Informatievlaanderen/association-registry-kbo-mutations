@@ -33,9 +33,11 @@ public class TelemetryManager : IDisposable
         _logger.LogInformation($"OTLP config - Org ID: {_orgId}");
 
         _openTelemetrySetup = new OpenTelemetrySetup(logger, configuration);
-        _openTelemetrySetup.SetupMeter(_metricsUri, _orgId);
+        MetricProvider = _openTelemetrySetup.SetupMeter(_metricsUri, _orgId);
         _openTelemetrySetup.SetUpTracing(_tracesUri, _orgId);
     }
+
+    public MeterProvider MetricProvider { get; set; }
 
     public void ConfigureLogging(ILoggingBuilder builder)
     {

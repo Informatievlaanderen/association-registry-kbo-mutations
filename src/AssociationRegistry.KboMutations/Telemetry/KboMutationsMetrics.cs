@@ -5,7 +5,7 @@ using System.Diagnostics.Metrics;
 
 public class KboMutationsMetrics
 {
-    public const string MeterName = "kbomutations.metrics";
+    public const string MeterName = "kbomutations";
 
     private readonly Counter<long> _filesProcessed;
     private readonly Counter<long> _mutationsPublished;
@@ -14,6 +14,9 @@ public class KboMutationsMetrics
     private readonly Histogram<double> _fileProcessingDuration;
     private readonly Histogram<long> _fileSizeBytes;
     private readonly Counter<long> _lambdaInvocations;
+    private readonly Histogram<double> _lambdaInvocationHistogram;
+    private readonly ObservableGauge<long> _lambdaLastInvocationTimestamp;
+    private long _lastInvocationTimestamp;
     private readonly string _environment;
 
     public KboMutationsMetrics(Meter meter)
@@ -49,6 +52,17 @@ public class KboMutationsMetrics
         _lambdaInvocations = meter.CreateCounter<long>(
             "kbo_mutations_lambda_invocations_total",
             description: "Number of lambda invocations");
+
+        _lambdaInvocationHistogram = meter.CreateHistogram<double>(
+            "kbo_mutations_lambda_invocation_events",
+            unit: "invocations",
+            description: "Lambda invocation events (use _count for total invocations)");
+
+        _lambdaLastInvocationTimestamp = meter.CreateObservableGauge<long>(
+            "kbo_mutations_lambda_last_invocation_timestamp",
+            observeValue: () => new Measurement<long>(_lastInvocationTimestamp, new TagList { { "environment", _environment } }),
+            unit: "seconds",
+            description: "Unix timestamp of last lambda invocation");
     }
 
     public void RecordFileProcessed(string fileType, bool success)
@@ -111,6 +125,14 @@ public class KboMutationsMetrics
             { "cold_start", coldStart },
             { "environment", _environment }
         };
+
+        // Counter for rate calculations
         _lambdaInvocations.Add(1, tags);
+
+        // Histogram for count and distribution visualization
+        _lambdaInvocationHistogram.Record(1.0, tags);
+
+        // Update timestamp gauge for "last seen" queries
+        _lastInvocationTimestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
     }
 }
