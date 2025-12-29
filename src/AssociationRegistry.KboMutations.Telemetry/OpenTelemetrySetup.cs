@@ -30,66 +30,39 @@ public class OpenTelemetrySetup : IDisposable
 
     public MeterProvider SetupMeter(string? metricsUri, string? orgId, params string[] meterNames)
     {
-        var builder = Sdk.CreateMeterProviderBuilder()
-                         .ConfigureResource(_resources.ConfigureResourceBuilder)
-                         .AddRuntimeInstrumentation()
-                         .AddHttpClientInstrumentation();
+        var resourceBuilder = ResourceBuilder.CreateEmpty();
+        _resources.ConfigureResourceBuilder(resourceBuilder);
 
-        // Add all requested meters
+        var builder = Sdk.CreateMeterProviderBuilder()
+            .SetResourceBuilder(resourceBuilder)
+            .AddRuntimeInstrumentation()
+            .AddHttpClientInstrumentation();
+
         foreach (var meterName in meterNames)
         {
             _logger.LogInformation($"Registering meter: {meterName}");
             builder.AddMeter(meterName);
         }
 
-        // Also add wildcard to catch any meters we might have missed
-        builder.AddMeter("*");
-
-        // Add console exporter for debugging
-        builder.AddConsoleExporter();
-
         if (!string.IsNullOrEmpty(metricsUri))
         {
             _logger.LogInformation($"Adding OTLP metrics exporter: {metricsUri}");
-
-            // Use BaseExportingMetricReader for on-demand collection only
-            // This prevents periodic collection during long-running Lambda invocations
-            var exporter = new OtlpMetricExporter(new OtlpExporterOptions
+        
+            builder.AddOtlpExporter((exporterOptions, readerOptions) =>
             {
-                Endpoint = new Uri(metricsUri),
-                Protocol = OtlpExportProtocol.HttpProtobuf,
-                Headers = !string.IsNullOrEmpty(orgId) ? $"X-Scope-OrgID={orgId}" : null,
-                HttpClientFactory = () =>
-                {
-                    var handler = new HttpClientHandler();
-                    var loggingHandler = new LoggingHttpMessageHandler(_logger) { InnerHandler = handler };
-                    return new HttpClient(loggingHandler);
-                }
+                exporterOptions.Endpoint = new Uri(metricsUri);
+                exporterOptions.Protocol = OtlpExportProtocol.HttpProtobuf;
+                exporterOptions.Headers = !string.IsNullOrEmpty(orgId) 
+                    ? $"X-Scope-OrgID={orgId}" 
+                    : null;
+                
+                // Export only on ForceFlush, not periodically
+                readerOptions.PeriodicExportingMetricReaderOptions.ExportIntervalMilliseconds = 60000;
             });
-
-            // Use BaseExportingMetricReader for on-demand collection only
-            // Exports only happen on ForceFlush() - prevents periodic collection during Lambda execution
-            // Using Delta temporality for Lambda - each invocation sends only its own data
-            // This prevents cardinality explosion from counter resets
-            var reader = new BaseExportingMetricReader(exporter)
-            {
-                // TemporalityPreference = MetricReaderTemporalityPreferencez.Delta
-            };
-
-            builder.AddReader(reader);
-
-            _logger.LogInformation($"Metrics - Endpoint: {metricsUri}");
-            _logger.LogInformation($"Metrics - Protocol: HttpProtobuf");
-            _logger.LogInformation($"Metrics - Headers: {(!string.IsNullOrEmpty(orgId) ? "X-Scope-OrgID=..." : "none")}");
-            _logger.LogInformation($"Metrics - Export Strategy: Manual (on Dispose only)");
-        }
-        else
-        {
-            _logger.LogInformation("No metrics URI configured, skipping OTLP metrics exporter");
+            builder.AddConsoleExporter();
         }
 
         MeterProvider = builder.Build();
-
         return MeterProvider;
     }
 
@@ -176,8 +149,9 @@ public class OpenTelemetrySetup : IDisposable
 
         Action<ResourceBuilder> configureResource = r =>
         {
-            r
-               .AddService(
+            // Resource builder is already empty (CreateEmpty()), so no need to Clear()
+            // Only add explicitly what we want - prevents cardinality explosion from auto-detected attributes
+            r.AddService(
                     serviceName,
                     serviceVersion: assemblyVersion,
                     serviceInstanceId: serviceInstanceId)

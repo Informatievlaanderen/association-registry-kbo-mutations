@@ -31,55 +31,35 @@ public class OpenTelemetrySetup : IDisposable
 
     public MeterProvider SetupMeter(string? metricsUri, string? orgId)
     {
+        var resourceBuilder = ResourceBuilder.CreateEmpty();
+        _resources.ConfigureResourceBuilder(resourceBuilder);
+
         var builder = Sdk.CreateMeterProviderBuilder()
-                         .ConfigureResource(_resources.ConfigureResourceBuilder)
-                         .AddMeter(MeterName)
-                         .AddMeter(AssociationRegistry.KboMutations.Telemetry.KboMutationsMetrics.MeterName)
-                         .AddRuntimeInstrumentation()
-                         .AddHttpClientInstrumentation();
+            .SetResourceBuilder(resourceBuilder)
+            .AddMeter(MeterName)
+            .AddMeter(AssociationRegistry.KboMutations.Telemetry.KboMutationsMetrics.MeterName)
+            .AddRuntimeInstrumentation()
+            .AddHttpClientInstrumentation();
 
         if (!string.IsNullOrEmpty(metricsUri))
         {
             _logger.LogInformation($"Adding OTLP metrics exporter: {metricsUri}");
 
-            // Use BaseExportingMetricReader for manual/on-dispose export only
-            // This prevents multiple exports during long-running Lambda invocations
-            var exporter = new OtlpMetricExporter(new OtlpExporterOptions
+            builder.AddOtlpExporter((exporterOptions, readerOptions) =>
             {
-                Endpoint = new Uri(metricsUri),
-                Protocol = OtlpExportProtocol.HttpProtobuf,
-                Headers = !string.IsNullOrEmpty(orgId) ? $"X-Scope-OrgID={orgId}" : null,
-                HttpClientFactory = () =>
-                {
-                    var handler = new HttpClientHandler();
-                    var loggingHandler = new LoggingHttpMessageHandler(_logger) { InnerHandler = handler };
-                    return new HttpClient(loggingHandler);
-                }
+                exporterOptions.Endpoint = new Uri(metricsUri);
+                exporterOptions.Protocol = OtlpExportProtocol.HttpProtobuf;
+                exporterOptions.Headers = !string.IsNullOrEmpty(orgId)
+                    ? $"X-Scope-OrgID={orgId}"
+                    : null;
+
+                // Export only on ForceFlush, not periodically
+                readerOptions.PeriodicExportingMetricReaderOptions.ExportIntervalMilliseconds = 60000;
             });
-
-            // Use BaseExportingMetricReader for on-demand collection only
-            // Exports only happen on ForceFlush() - prevents periodic collection during Lambda execution
-            // Using Delta temporality for Lambda - each invocation sends only its own data
-            // This prevents cardinality explosion from counter resets
-            var reader = new BaseExportingMetricReader(exporter)
-            {
-                // TemporalityPreference = MetricReaderTemporalityPreference.Delta
-            };
-
-            builder.AddReader(reader);
-
-            _logger.LogInformation($"Metrics - Endpoint: {metricsUri}");
-            _logger.LogInformation($"Metrics - Protocol: HttpProtobuf");
-            _logger.LogInformation($"Metrics - Headers: {(!string.IsNullOrEmpty(orgId) ? "X-Scope-OrgID=..." : "none")}");
-            _logger.LogInformation($"Metrics - Export Strategy: Manual (on Dispose only)");
-        }
-        else
-        {
-            _logger.LogInformation("No metrics URI configured, skipping OTLP metrics exporter");
+            builder.AddConsoleExporter();
         }
 
         MeterProvider = builder.Build();
-
         return MeterProvider;
     }
 
@@ -163,8 +143,9 @@ public class OpenTelemetrySetup : IDisposable
 
         Action<ResourceBuilder> configureResource = r =>
         {
-            r
-               .AddService(
+            // Resource builder is already empty (CreateEmpty()), so no need to Clear()
+            // Only add explicitly what we want - prevents cardinality explosion from auto-detected attributes
+            r.AddService(
                     serviceName,
                     serviceVersion: assemblyVersion,
                     serviceInstanceId: serviceInstanceId)
@@ -205,33 +186,3 @@ public class OpenTelemetrySetup : IDisposable
 }
 
 public record OpenTelemetryResources(string ServiceName, Action<ResourceBuilder> ConfigureResourceBuilder);
-
-public class LoggingHttpMessageHandler : DelegatingHandler
-{
-    private readonly ILambdaLogger _logger;
-
-    public LoggingHttpMessageHandler(ILambdaLogger logger)
-    {
-        _logger = logger;
-    }
-
-    protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
-    {
-        var response = await base.SendAsync(request, cancellationToken);
-
-        if (!response.IsSuccessStatusCode)
-        {
-            var responseBody = await response.Content.ReadAsStringAsync(cancellationToken);
-            Console.WriteLine($"======== OTLP EXPORT ERROR ========");
-            Console.WriteLine($"HTTP {(int)response.StatusCode} {response.ReasonPhrase}");
-            Console.WriteLine($"Response Body: {responseBody}");
-            Console.WriteLine($"Request URL: {request.RequestUri}");
-            Console.WriteLine($"Request Headers: {string.Join(", ", request.Headers.Select(h => $"{h.Key}={string.Join(",", h.Value)}"))}");
-            Console.WriteLine($"===================================");
-
-            _logger.LogLine($"OTLP ERROR: {response.StatusCode} - {responseBody}");
-        }
-
-        return response;
-    }
-}

@@ -143,9 +143,9 @@ static async Task SimulateLambdaInvocation(
         await Task.Delay(TimeSpan.FromMilliseconds(Random.Shared.Next(100, 500)));
 
         // Force flush metrics before disposal (required for manual export strategy)
-        Console.WriteLine("  Force flushing metrics...");
-        var flushResult = telemetrySetup.MeterProvider?.ForceFlush();
-        Console.WriteLine($"  Metrics flush result: {flushResult}");
+        // Console.WriteLine("  Force flushing metrics...");
+        // // var flushResult = telemetrySetup.MeterProvider?.ForceFlush();
+        // Console.WriteLine($"  Metrics flush result: {flushResult}");
 
         // Small delay to allow HTTP requests to complete
         await Task.Delay(TimeSpan.FromMilliseconds(500));
