@@ -1,3 +1,5 @@
+## [1.18.7](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.18.6...v1.18.7) (2025-12-29)
+
 ## [1.18.6](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.18.5...v1.18.6) (2025-12-29)
 
 
