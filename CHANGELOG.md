@@ -1,3 +1,10 @@
+## [1.18.5](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.18.4...v1.18.5) (2025-12-29)
+
+
+### Bug Fixes
+
+* or-2942 use base exporting metric reader ([04b0cae](https://github.com/informatievlaanderen/association-registry-kbo-mutations/commit/04b0cae60769be18679e9cc068531416226800da))
+
 ## [1.18.4](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.18.3...v1.18.4) (2025-12-25)
 
 
