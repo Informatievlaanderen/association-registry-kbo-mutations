@@ -11,11 +11,11 @@
     <PackageVersion Include="Amazon.Lambda.APIGatewayEvents" Version="2.7.1" />
     <PackageVersion Include="Amazon.Lambda.SQSEvents" Version="2.2.0" />
     <PackageVersion Include="AutoFixture" Version="4.18.1" />
-    <PackageVersion Include="AWSSDK.Core" Version="3.7.400.27" />
-    <PackageVersion Include="AWSSDK.DynamoDBv2" Version="3.7.401.5" />
-    <PackageVersion Include="AWSSDK.SimpleSystemsManagement" Version="3.7.402.6" />
-    <PackageVersion Include="AWSSDK.SQS" Version="3.7.400.27" />
-    <PackageVersion Include="AWSSDK.S3" Version="3.7.403.6" />
+    <PackageVersion Include="AWSSDK.Core" Version="3.7.500.61" />
+    <PackageVersion Include="AWSSDK.DynamoDBv2" Version="3.7.509.15" />
+    <PackageVersion Include="AWSSDK.SimpleSystemsManagement" Version="3.7.504.18" />
+    <PackageVersion Include="AWSSDK.SQS" Version="3.7.502.22" />
+    <PackageVersion Include="AWSSDK.S3" Version="3.7.509.2" />
     <PackageVersion Include="Be.Vlaanderen.Basisregisters.AssociationRegistry" Version="8.201.6" />
     <PackageVersion Include="Be.Vlaanderen.Basisregisters.Build.Pipeline" Version="7.2.6" />
     <PackageVersion Include="CloudNative.CloudEvents" Version="2.8.0" />
