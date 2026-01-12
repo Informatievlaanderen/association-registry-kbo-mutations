@@ -67,7 +67,7 @@ public class CloudEventBuilder
     public CloudEvent Build()
     {
         var cloudEvent = new CloudEvent
-        {
+        { 
             Type = _eventType,
             Source = _source,
             Id = Guid.NewGuid().ToString(),

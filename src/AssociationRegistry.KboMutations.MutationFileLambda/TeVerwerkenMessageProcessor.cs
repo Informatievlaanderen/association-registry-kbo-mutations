@@ -64,8 +64,12 @@ public class TeVerwerkenMessageProcessor
 
             // Deserialize CloudEvent and extract trace context
             var cloudEvent = CloudEventExtensions.FromJson(record.Body);
+
             var message = JsonSerializer.Deserialize<TeVerwerkenMutatieBestandMessage>(
-                JsonSerializer.Serialize(cloudEvent?.Data));
+                JsonSerializer.Serialize(cloudEvent?.Data), new JsonSerializerOptions(new JsonSerializerOptions()
+                {
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                }));
 
             // Extract trace context and create activity with parent context
             ActivityContext? parentContext = cloudEvent?.ExtractTraceContext();
