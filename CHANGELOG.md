@@ -1,3 +1,10 @@
+# [1.19.0](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.18.8...v1.19.0) (2026-01-13)
+
+
+### Features
+
+* or-2942 remove otlp console exporter ([a9bb9cf](https://github.com/informatievlaanderen/association-registry-kbo-mutations/commit/a9bb9cf6419beb4a91bec83150f098cc3d97681d))
+
 ## [1.18.8](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.18.7...v1.18.8) (2026-01-13)
 
 
