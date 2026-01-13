@@ -55,7 +55,6 @@ public class OpenTelemetrySetup : IDisposable
 
                 readerOptions.PeriodicExportingMetricReaderOptions.ExportIntervalMilliseconds = 60000;
             });
-            builder.AddConsoleExporter();
         }
 
         MeterProvider = builder.Build();
