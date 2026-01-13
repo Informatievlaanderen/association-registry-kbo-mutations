@@ -1,3 +1,10 @@
+## [1.18.8](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.18.7...v1.18.8) (2026-01-13)
+
+
+### Bug Fixes
+
+* or-2991 make json of sync message camel casing ([5f22bd5](https://github.com/informatievlaanderen/association-registry-kbo-mutations/commit/5f22bd55fa86db2966f28440ef472ffcbfbc898c))
+
 ## [1.18.7](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.18.6...v1.18.7) (2025-12-29)
 
 ## [1.18.6](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.18.5...v1.18.6) (2025-12-29)
