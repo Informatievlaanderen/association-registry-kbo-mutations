@@ -538,7 +538,7 @@
     "uri-js": "^4.4.1",
     "url-join": "^5.0.0",
     "util-deprecate": "^1.0.2",
-    "uuid": "^8.3.2",
+    "uuid": "^14.0.0",
     "uvm": "^2.0.2",
     "v8-compile-cache-lib": "^3.0.1",
     "validate-npm-package-license": "^3.0.4",
