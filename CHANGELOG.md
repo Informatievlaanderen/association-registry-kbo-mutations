@@ -1,3 +1,10 @@
+## [1.19.1](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.19.0...v1.19.1) (2026-08-24)
+
+
+### Bug Fixes
+
+* or-3469 only put deceased persons on queue to sync ([66fb5b3](https://github.com/informatievlaanderen/association-registry-kbo-mutations/commit/66fb5b3c262bde23867d6d322a551c037db9c61c))
+
 # [1.19.0](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.18.8...v1.19.0) (2026-01-13)
 
 
