@@ -47,7 +47,7 @@ public class PersoonMutatieBestandProcessor: IMutatieBestandProcessor
         _contextLogger.LogInformation($"Found {mutatielijnen.Length} mutatielijnen");
 
         var responses = new List<SendMessageResponse>();
-        foreach (var mutatielijn in mutatielijnen)
+        foreach (var mutatielijn in mutatielijnen.Where(x => x.Overleden))
         {
             _contextLogger.LogInformation($"Sending persoon to synchronize queue");
 
