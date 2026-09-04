@@ -287,7 +287,7 @@
     "getpass": "^0.1.7",
     "git-log-parser": "^1.2.0",
     "git-raw-commits": "^2.0.11",
-    "glob": "^7.2.3",
+    "glob": "^10.0.0",
     "glob-parent": "^5.1.2",
     "global-dirs": "^0.1.1",
     "global-modules": "^1.0.0",
