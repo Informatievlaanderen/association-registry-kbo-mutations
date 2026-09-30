@@ -1,3 +1,10 @@
+## [1.19.2](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.19.1...v1.19.2) (2026-09-30)
+
+
+### Bug Fixes
+
+* trigger build ([6c07128](https://github.com/informatievlaanderen/association-registry-kbo-mutations/commit/6c07128032c37773420774bf5d79dbad2696e33e))
+
 ## [1.19.1](https://github.com/informatievlaanderen/association-registry-kbo-mutations/compare/v1.19.0...v1.19.1) (2026-08-24)
 
 
