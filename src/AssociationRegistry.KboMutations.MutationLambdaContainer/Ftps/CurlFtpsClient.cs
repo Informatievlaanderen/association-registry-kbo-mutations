@@ -112,7 +112,7 @@ public class CurlFtpsClient : IFtpsClient
                             (!string.IsNullOrEmpty(_kboMutationsConfiguration.CaCertPath) ? $"--cacert {_kboMutationsConfiguration.CaCertPath} " : "") +
                             $"{baseUri} " +
                             $"-Q \"-RNFR {ftpSourceFilePath.TrimStart('/')}\" " +
-                            $"-Q \"-RNTO {ftpDestinationFilePath.TrimStart('/')}\" --fail --silent --show-error",
+                            $"-Q \"-RNTO {ftpDestinationFilePath.TrimStart('/')}\" --fail -v",
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,
