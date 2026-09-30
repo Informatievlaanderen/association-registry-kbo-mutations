@@ -128,5 +128,6 @@ public class CurlFtpsClient : IFtpsClient
 
         if (process.ExitCode != 0)
             _logger.LogError($"Could not move file {ftpSourceFilePath} to {ftpDestinationFilePath}:\n{error}");
+
     }
 }
