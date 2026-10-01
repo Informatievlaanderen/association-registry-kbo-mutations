@@ -464,7 +464,7 @@
     "quick-lru": "^4.0.1",
     "rc": "^1.2.8",
     "read-pkg": "^9.0.1",
-    "read-pkg-up": "^11.0.0",
+    "read-package-up": "^11.0.0",
     "readable-stream": "^2.3.8",
     "redent": "^3.0.0",
     "redeyed": "^2.1.1",
